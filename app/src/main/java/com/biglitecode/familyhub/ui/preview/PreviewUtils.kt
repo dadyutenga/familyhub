@@ -42,7 +42,8 @@ val PreviewChild = FamilyMember(
 
 /**
  * Wraps any screen in FamilyHub theme + cream background for previews.
- * Seeds [SessionManager] with a demo user and builds a [TasksViewModel] on FakeTaskRepository.
+ * Seeds [SessionManager] with a preview-only user and builds a [TasksViewModel]
+ * on FakeTaskRepository. This is intentionally for @Preview tooling only.
  */
 @Composable
 fun FamilyHubPreview(

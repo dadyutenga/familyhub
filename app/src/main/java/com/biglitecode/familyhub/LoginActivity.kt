@@ -10,7 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import com.biglitecode.familyhub.data.repository.FakeTaskRepository
+import com.biglitecode.familyhub.data.repository.SupabaseFamilyRepository
 import com.biglitecode.familyhub.data.session.SessionManager
 import com.biglitecode.familyhub.ui.login.LoginScreen
 import com.biglitecode.familyhub.ui.theme.FamilyHubTheme
@@ -29,7 +29,7 @@ class LoginActivity : ComponentActivity() {
                 var loading by remember { mutableStateOf(false) }
                 var error by remember { mutableStateOf<String?>(null) }
                 val scope = rememberCoroutineScope()
-                val repo = FakeTaskRepository.getInstance()
+                val repo = SupabaseFamilyRepository.getInstance()
 
                 LoginScreen(
                     email = email,

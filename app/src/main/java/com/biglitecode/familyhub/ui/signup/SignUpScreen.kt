@@ -151,7 +151,7 @@ fun SignUpScreen(
                 label = {
                     Text(
                         if (groupOption == FamilyGroupOption.CREATE) "Family group name"
-                        else "Invite code (try MWNG2026)"
+                        else "Invite code"
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),

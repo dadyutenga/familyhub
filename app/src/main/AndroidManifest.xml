@@ -53,10 +53,6 @@
             android:name=".PrivacyPolicyActivity"
             android:exported="false" />
 
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" />
-
     </application>
 
 </manifest>

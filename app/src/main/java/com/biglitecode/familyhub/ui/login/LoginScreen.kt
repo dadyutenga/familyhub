@@ -75,17 +75,6 @@ fun LoginScreen(
                 fontWeight = FontWeight.Bold
             )
             Text("Sign in to FamilyHub", color = TextMutedBrown)
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "Demo: amina@familyhub.test / parent123",
-                color = TextMutedBrown,
-                style = MaterialTheme.typography.bodySmall
-            )
-            Text(
-                "or wanjiku@familyhub.test / child123",
-                color = TextMutedBrown,
-                style = MaterialTheme.typography.bodySmall
-            )
             Spacer(Modifier.height(24.dp))
 
             error?.let {

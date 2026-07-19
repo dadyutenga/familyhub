@@ -14,6 +14,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
+/**
+ * PREVIEW-ONLY: In-memory repository with sample data.
+ *
+ * This class is intentionally kept for @Preview composables so designers can
+ * see UI states in Android Studio without a network connection. It must NOT be
+ * used in production Activities or ViewModels; use SupabaseFamilyRepository instead.
+ */
 class FakeTaskRepository : FamilyRepository {
 
     private val dayMs = TimeUnit.DAYS.toMillis(1)

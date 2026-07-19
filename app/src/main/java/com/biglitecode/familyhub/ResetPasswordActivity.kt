@@ -9,7 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import com.biglitecode.familyhub.data.repository.FakeTaskRepository
+import com.biglitecode.familyhub.data.repository.SupabaseFamilyRepository
 import com.biglitecode.familyhub.ui.resetpassword.ResetPasswordScreen
 import com.biglitecode.familyhub.ui.theme.FamilyHubTheme
 import kotlinx.coroutines.launch
@@ -25,7 +25,7 @@ class ResetPasswordActivity : ComponentActivity() {
                 var error by remember { mutableStateOf<String?>(null) }
                 var success by remember { mutableStateOf(false) }
                 val scope = rememberCoroutineScope()
-                val repo = FakeTaskRepository.getInstance()
+                val repo = SupabaseFamilyRepository.getInstance()
 
                 ResetPasswordScreen(
                     email = email,

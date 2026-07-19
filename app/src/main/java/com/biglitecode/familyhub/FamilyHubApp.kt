@@ -1,12 +1,12 @@
 package com.biglitecode.familyhub
 
 import android.app.Application
-import com.biglitecode.familyhub.data.repository.FakeTaskRepository
 import com.biglitecode.familyhub.data.repository.FamilyRepository
+import com.biglitecode.familyhub.data.repository.SupabaseFamilyRepository
 import com.biglitecode.familyhub.util.NotificationHelper
 
 class FamilyHubApp : Application() {
-    val repository: FamilyRepository by lazy { FakeTaskRepository.getInstance() }
+    val repository: FamilyRepository by lazy { SupabaseFamilyRepository.getInstance() }
 
     override fun onCreate() {
         super.onCreate()

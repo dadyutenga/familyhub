@@ -76,7 +76,7 @@ fun ResetPasswordScreen(
             }
             if (success) {
                 Text(
-                    "Reset link sent! Check your inbox (demo: success).",
+                    "Reset link sent! Check your inbox.",
                     color = ForestGreen,
                     style = MaterialTheme.typography.bodyLarge
                 )

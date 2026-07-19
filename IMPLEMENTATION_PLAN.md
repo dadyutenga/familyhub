@@ -97,7 +97,29 @@ Created `MainActivity.kt` and `TodoItem.kt` as a quick Supabase Compose demo:
 - `TodoItem.kt` is a `@Serializable` data class: `data class TodoItem(val id: Int, val name: String)`.
 - `MainActivity` was registered in `AndroidManifest.xml` as a non-launcher activity.
 
-### 2.5 Supabase Database Schema
+### 2.5 Demo Data Removal Sweep
+All hardcoded demo, sample, mock, and placeholder data was removed from the runtime code:
+
+- **Created `SupabaseFamilyRepository`** — a stub repository that returns `emptyList()` and `Result.failure` for every call, with `// TODO(supabase):` comments tracking each real Supabase wire-up.
+- **Wired real app entry points** to `SupabaseFamilyRepository`:
+  - `FamilyHubApp`
+  - `LoginActivity`
+  - `SignUpActivity`
+  - `ResetPasswordActivity`
+- **Kept `FakeTaskRepository`** but marked it **PREVIEW-ONLY**; it is now only used by `@Preview` composables via `PreviewUtils.kt`.
+- **Removed demo files**:
+  - `MainActivity.kt`
+  - `TodoItem.kt`
+- **Removed demo hints from auth screens**:
+  - Login screen demo account hints
+  - Reset password "(demo: success)" message
+  - Sign-up "try MWNG2026" invite-code hint
+- **Marked stub screens** with `// STUB:` and `// TODO(supabase):` comments:
+  - `HelpScreen.kt` — placeholder FAQs
+  - `PrivacyPolicyScreen.kt` — placeholder legal text
+- **Removed SQL seed inserts** from `supabase_schema.sql` — table definitions, RLS, indexes, and functions remain.
+
+### 2.6 Supabase Database Schema
 A complete SQL schema was written and saved to the Desktop:
 
 ```text
@@ -113,16 +135,15 @@ The schema includes:
 | `tasks` | Chores/tasks assigned to children |
 | `feedback` | Ratings and comments on completed tasks |
 | `complaints` | Family complaints submitted by children |
-| `todos` | Demo table for `MainActivity` |
 
 Also included:
 - Foreign keys and `CHECK` constraints.
 - Row Level Security (RLS) policies.
 - Helper functions: `current_user_family_group_id()` and `current_user_is_parent()`.
 - Indexes for performance.
-- Sample data matching the old `FakeTaskRepository` demo set.
+- **No seed/sample data** — all rows must be created through the app.
 
-### 2.6 Supabase Agent Skills
+### 2.7 Supabase Agent Skills
 Installed via `npx skills add supabase/agent-skills --yes`:
 
 - `supabase`
@@ -130,7 +151,7 @@ Installed via `npx skills add supabase/agent-skills --yes`:
 
 These are saved in `.agents/skills/` for AI coding assistance.
 
-### 2.7 Build Verification
+### 2.8 Build Verification
 The project compiles successfully:
 
 ```bash
@@ -146,10 +167,8 @@ Output: `BUILD SUCCESSFUL`
 ```text
 familyhub/
 ├── app/
-│   ├── build.gradle.kts              # Supabase deps + BuildConfig credentials
+│   ├── build.gradle.kts              # Supabase deps + BuildConfig credentials (local.properties)
 │   └── src/main/java/com/biglitecode/familyhub/
-│       ├── MainActivity.kt           # Demo TodoList (Compose + Supabase)
-│       ├── TodoItem.kt               # @Serializable demo model
 │       ├── core/
 │       │   └── SupabaseClient.kt     # SupabaseClientProvider
 │       ├── data/
@@ -158,12 +177,14 @@ familyhub/
 │       │   ├── remote/
 │       │   │   └── SupabaseClient.kt # SupabaseProvider (v3)
 │       │   ├── repository/
-│       │   │   ├── FamilyRepository.kt     # Interface
-│       │   │   └── FakeTaskRepository.kt     # In-memory implementation
+│       │   │   ├── FamilyRepository.kt          # Repository interface
+│       │   │   ├── SupabaseFamilyRepository.kt    # Runtime stub (empty data + TODOs)
+│       │   │   └── FakeTaskRepository.kt          # PREVIEW-ONLY sample data
 │       │   └── session/SessionManager.kt
 │       └── ui/...                    # Compose screens
 ├── gradle/libs.versions.toml         # Version catalog
-└── supabase_schema.sql (moved to Desktop)
+├── local.properties                  # Supabase credentials (NOT committed)
+└── supabase_schema.sql (on Desktop)   # SQL schema without seed data
 ```
 
 ---
@@ -173,8 +194,8 @@ familyhub/
 The following work remains for a fully functional v2:
 
 1. **Real Supabase Repository**
-   - Implement `FamilyRepository` against Supabase tables.
-   - Replace `FakeTaskRepository` usage in `LoginActivity`, `SignUpActivity`, and `FamilyHubApp`.
+   - Replace the stub methods in `SupabaseFamilyRepository` with real Supabase Postgrest/Auth calls.
+   - `FakeTaskRepository` is now preview-only and should be removed once all screens are fully wired.
 
 2. **Authentication with Supabase Auth**
    - Replace the fake `login`/`signUp` logic with `Supabase.auth.signInWithEmail()` and `signUp()`.
@@ -260,9 +281,9 @@ sealed class UiState<out T> {
 | `app/build.gradle.kts` | Supabase dependencies + BuildConfig credentials |
 | `app/src/main/java/.../core/SupabaseClient.kt` | New Supabase client provider |
 | `app/src/main/java/.../data/remote/SupabaseClient.kt` | Existing Supabase provider (v3) |
-| `app/src/main/java/.../MainActivity.kt` | Demo TodoList screen |
-| `app/src/main/java/.../TodoItem.kt` | Demo serializable model |
-| `Desktop/supabase_schema.sql` | Full SQL schema for Supabase |
+| `app/src/main/java/.../data/repository/SupabaseFamilyRepository.kt` | Runtime stub returning empty data |
+| `app/src/main/java/.../data/repository/FakeTaskRepository.kt` | PREVIEW-ONLY sample data |
+| `Desktop/supabase_schema.sql` | Full SQL schema for Supabase (no seed data) |
 | `gradle/libs.versions.toml` | Version catalog |
 
 ---

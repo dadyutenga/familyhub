@@ -12,7 +12,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import com.biglitecode.familyhub.data.model.FamilyGroupOption
 import com.biglitecode.familyhub.data.model.FamilyRole
-import com.biglitecode.familyhub.data.repository.FakeTaskRepository
+import com.biglitecode.familyhub.data.repository.SupabaseFamilyRepository
 import com.biglitecode.familyhub.data.session.SessionManager
 import com.biglitecode.familyhub.ui.signup.SignUpScreen
 import com.biglitecode.familyhub.ui.theme.FamilyHubTheme
@@ -34,7 +34,7 @@ class SignUpActivity : ComponentActivity() {
                 var loading by remember { mutableStateOf(false) }
                 var error by remember { mutableStateOf<String?>(null) }
                 val scope = rememberCoroutineScope()
-                val repo = FakeTaskRepository.getInstance()
+                val repo = SupabaseFamilyRepository.getInstance()
 
                 SignUpScreen(
                     name = name,

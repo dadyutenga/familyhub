@@ -11,7 +11,8 @@ import androidx.room.RoomDatabase
  * KSP + room-compiler is temporarily disabled due to AGP 9 / built-in Kotlin
  * compatibility. When re-enabled, uncomment ksp(libs.androidx.room.compiler)
  * in app/build.gradle.kts and use [getInstance] from a Room-backed repository.
- * Until then the app runs entirely on [com.biglitecode.familyhub.data.repository.FakeTaskRepository].
+ * Until then the app uses [com.biglitecode.familyhub.data.repository.SupabaseFamilyRepository]
+ * as a stub that returns empty data; real Supabase wiring is tracked with TODOs.
  */
 @Database(
     entities = [

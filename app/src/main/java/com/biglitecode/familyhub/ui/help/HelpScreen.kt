@@ -39,12 +39,16 @@ import com.biglitecode.familyhub.ui.theme.ForestGreen
 import com.biglitecode.familyhub.ui.theme.TextBrown
 import com.biglitecode.familyhub.ui.theme.TextMutedBrown
 
+// STUB: Help content is static placeholder text until a real FAQ CMS or
+// Supabase-backed help table is implemented.
+// TODO(supabase): load FAQs from Supabase or remote config.
+
 private data class Faq(val question: String, val answer: String)
 
 private val faqs = listOf(
     Faq(
         "How do I add family members?",
-        "Parents can share the family invite code from the Account screen. New members enter that code during Sign Up under “Join existing family group”."
+        "Parents can share the family invite code from the Account screen. New members enter that code during Sign Up."
     ),
     Faq(
         "How do I assign tasks?",
@@ -52,19 +56,19 @@ private val faqs = listOf(
     ),
     Faq(
         "How do points and rewards work?",
-        "Each task has reward points. When a task is marked Done, points count toward the Weekly Rewards card and the Family Leaderboard on Report."
+        "Each task has reward points. When a task is marked Done, points count toward the Weekly Rewards card."
     ),
     Faq(
         "Can I use FamilyHub offline?",
-        "Yes for local demo data. After Room/Supabase wiring, the app caches tasks offline and syncs when you’re back online."
+        "The app will support offline caching once Supabase sync is fully wired. Currently it requires an internet connection."
     ),
     Faq(
         "How do I reset my password?",
-        "On the Login screen, tap “Forgot password?”, enter your email, and tap Send Reset Link. You’ll see a confirmation message."
+        "On the Login screen, tap “Forgot password?”, enter your email, and tap Send Reset Link. You’ll receive a confirmation message."
     ),
     Faq(
         "Can I change my role later?",
-        "Roles are set at sign-up (Parent/Guardian or Child/Member). Contact a parent admin if you need a role change for a demo account."
+        "Roles are set at sign-up (Parent/Guardian or Child/Member). Contact a parent admin if you need a role change."
     ),
     Faq(
         "How do SMS reminders work?",
