@@ -75,17 +75,16 @@ fun ContactScreen(viewModel: TasksViewModel) {
                     Spacer(Modifier.height(16.dp))
                     PrimaryButton(
                         text = "Call",
+                        enabled = admin.phoneNumber.isNotBlank(),
                         onClick = {
-                            val phone = admin.phoneNumber.ifBlank { "0712345678" }
-                            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone"))
+                            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${admin.phoneNumber}"))
                             context.startActivity(intent)
                         }
                     )
                     Spacer(Modifier.height(10.dp))
                     androidx.compose.material3.Button(
                         onClick = {
-                            val phone = admin.phoneNumber.ifBlank { "0712345678" }
-                            val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:$phone")).apply {
+                            val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:${admin.phoneNumber}")).apply {
                                 putExtra("sms_body", "Hi ${admin.name}, message from FamilyHub.")
                             }
                             try {
@@ -94,6 +93,7 @@ fun ContactScreen(viewModel: TasksViewModel) {
                                 Toast.makeText(context, "No SMS app available", Toast.LENGTH_SHORT).show()
                             }
                         },
+                        enabled = admin.phoneNumber.isNotBlank(),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp),

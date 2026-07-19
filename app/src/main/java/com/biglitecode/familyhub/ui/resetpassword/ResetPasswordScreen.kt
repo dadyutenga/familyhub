@@ -103,7 +103,7 @@ fun ResetPasswordScreen(
 @Preview(name = "Reset Password", showBackground = true, device = PreviewDevices.PHONE)
 @Composable
 private fun ResetPasswordScreenPreview() {
-    var email by remember { mutableStateOf("amina@familyhub.test") }
+    var email by remember { mutableStateOf("") }
     FamilyHubThemePreview {
         ResetPasswordScreen(
             email = email,
@@ -122,7 +122,7 @@ private fun ResetPasswordScreenPreview() {
 private fun ResetPasswordSuccessPreview() {
     FamilyHubThemePreview {
         ResetPasswordScreen(
-            email = "amina@familyhub.test",
+            email = "user@example.com",
             onEmailChange = {},
             loading = false,
             error = null,

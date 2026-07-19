@@ -49,7 +49,6 @@ fun SettingsScreen(
     val group by viewModel.familyGroup.collectAsStateWithLifecycle()
     val isParent = user?.role == FamilyRole.PARENT
 
-    var darkMode by remember { mutableStateOf(false) }
     var pushNotifs by remember { mutableStateOf(true) }
     var smsReminders by remember { mutableStateOf(true) }
     var familyName by remember(group?.name) { mutableStateOf(group?.name.orEmpty()) }
@@ -99,8 +98,6 @@ fun SettingsScreen(
             colors = CardDefaults.cardColors(containerColor = CardCream)
         ) {
             Column(Modifier.padding(8.dp)) {
-                SettingSwitch("Dark Mode", darkMode) { darkMode = it }
-                HorizontalDivider()
                 SettingSwitch("Push Notifications", pushNotifs) { pushNotifs = it }
                 HorizontalDivider()
                 SettingSwitch("SMS Reminders", smsReminders) { smsReminders = it }

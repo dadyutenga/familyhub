@@ -106,10 +106,12 @@ All hardcoded demo, sample, mock, and placeholder data was removed from the runt
   - `LoginActivity`
   - `SignUpActivity`
   - `ResetPasswordActivity`
-- **Kept `FakeTaskRepository`** but marked it **PREVIEW-ONLY**; it is now only used by `@Preview` composables via `PreviewUtils.kt`.
+- **Deleted `FakeTaskRepository`** and removed all demo accounts, sample tasks, and fake passwords.
+- **Updated `PreviewUtils.kt`** to use the empty-data `SupabaseFamilyRepository` with generic preview users.
 - **Removed demo files**:
   - `MainActivity.kt`
   - `TodoItem.kt`
+  - `FakeTaskRepository.kt`
 - **Removed demo hints from auth screens**:
   - Login screen demo account hints
   - Reset password "(demo: success)" message
@@ -133,7 +135,7 @@ All hardcoded demo, sample, mock, and placeholder data was removed from the runt
 - **Removed SQL seed inserts** from `supabase_schema.sql` — table definitions, RLS, indexes, and functions remain.
 - **Forced light theme** in `FamilyHubTheme` (`darkTheme = false`) so the login screen and all screens always render in the warm light palette.
 - **Fixed white flash on startup** by creating `Theme.Familyhub.Splash` with a forest-green window background and applying it to `SplashActivity`.
-- **Removed all "BIG LITE CODE" references** from the app code, README, and task files.
+- **Removed all personal/author branding** from the app, README, and task files to keep it professional and individual.
 
 ### 2.6 Supabase Database Schema
 A complete SQL schema was written and saved to the Desktop:
@@ -194,8 +196,7 @@ familyhub/
 │       │   │   └── SupabaseClient.kt # SupabaseProvider (v3)
 │       │   ├── repository/
 │       │   │   ├── FamilyRepository.kt          # Repository interface
-│       │   │   ├── SupabaseFamilyRepository.kt    # Runtime stub (empty data + TODOs)
-│       │   │   └── FakeTaskRepository.kt          # PREVIEW-ONLY sample data
+│       │   │   └── SupabaseFamilyRepository.kt    # Runtime stub (empty data + TODOs)
 │       │   └── session/SessionManager.kt
 │       └── ui/...                    # Compose screens
 ├── gradle/libs.versions.toml         # Version catalog
@@ -211,7 +212,6 @@ The following work remains for a fully functional v2:
 
 1. **Real Supabase Repository**
    - Replace the stub methods in `SupabaseFamilyRepository` with real Supabase Postgrest/Auth calls.
-   - `FakeTaskRepository` is now preview-only and should be removed once all screens are fully wired.
 
 2. **Authentication with Supabase Auth**
    - Replace the fake `login`/`signUp` logic with `Supabase.auth.signInWithEmail()` and `signUp()`.
@@ -298,7 +298,6 @@ sealed class UiState<out T> {
 | `app/src/main/java/.../core/SupabaseClient.kt` | New Supabase client provider |
 | `app/src/main/java/.../data/remote/SupabaseClient.kt` | Existing Supabase provider (v3) |
 | `app/src/main/java/.../data/repository/SupabaseFamilyRepository.kt` | Runtime stub returning empty data |
-| `app/src/main/java/.../data/repository/FakeTaskRepository.kt` | PREVIEW-ONLY sample data |
 | `Desktop/supabase_schema.sql` | Full SQL schema for Supabase (no seed data) |
 | `gradle/libs.versions.toml` | Version catalog |
 

@@ -3,7 +3,7 @@
 An Android app for managing family relationships — parents/guardians assign tasks to children/members, track completion, leave feedback, raise complaints, and stay in touch within the family unit.
 
 **Package:** `com.biglitecode.familyhub`  
-**Student project:** DIT BEng Computing (BENG23COE)
+**Individual project:** Android app for family task management
 
 ---
 
@@ -31,7 +31,7 @@ An Android app for managing family relationships — parents/guardians assign ta
 | Cloud (scaffold) | Supabase client placeholders |
 | Min SDK | API 24 (Android 7.0) |
 
-Currently the app uses a stub **`SupabaseFamilyRepository`** that returns empty data; real Supabase auth and sync are tracked with TODOs. `FakeTaskRepository` is kept only for `@Preview` composables.
+Currently the app uses a stub **`SupabaseFamilyRepository`** that returns empty data; real Supabase auth and sync are tracked with TODOs. No demo accounts or sample data are included in the runtime code.
 
 ---
 
@@ -79,7 +79,7 @@ com.biglitecode.familyhub/
 │   ├── model/          # Task, FamilyMember, Feedback, Complaint, enums
 │   ├── local/          # Room entities, DAOs, AppDatabase (scaffold)
 │   ├── remote/         # Supabase client placeholders
-│   ├── repository/     # FamilyRepository + FakeTaskRepository
+│   ├── repository/     # FamilyRepository + SupabaseFamilyRepository
 │   └── session/        # SessionManager (current user StateFlow)
 ├── ui/
 │   ├── theme/          # Color, Theme, Shape, Type
@@ -132,12 +132,6 @@ Replace with your project keys when wiring real auth and sync. See `data/remote/
 
 ---
 
-## License / coursework note
+## License / note
 
-Student coursework demo for DIT BEng Computing. Not a production privacy policy or production backend — sample data and placeholder legal text only.
-
----
-
-## Author
-
-**Dady** — [github.com/dadyutenga](https://github.com/dadyutenga)
+This is an individual project. Not a production privacy policy or production backend — placeholder legal text only.

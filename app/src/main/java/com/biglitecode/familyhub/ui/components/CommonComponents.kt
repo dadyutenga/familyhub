@@ -261,23 +261,23 @@ fun PrimaryButton(
 }
 
 private val sampleMember = FamilyMember(
-    id = "m1",
-    name = "Amina Mwangi",
+    id = "preview_member",
+    name = "Sample User",
     role = FamilyRole.PARENT,
     avatarColor = "0xFF2F6B44"
 )
 
 private val sampleTask = Task(
-    id = "t1",
-    title = "Wash the dishes",
-    description = "Clean all plates and utensils after dinner.",
-    assignedTo = "m3",
-    assignedToName = "Wanjiku",
-    assignedBy = "m1",
+    id = "preview_task",
+    title = "Sample task title",
+    description = "Sample task description for preview purposes.",
+    assignedTo = "preview_child",
+    assignedToName = "Sample Assignee",
+    assignedBy = "preview_parent",
     dueDate = System.currentTimeMillis(),
     status = TaskStatus.PENDING,
     createdAt = System.currentTimeMillis(),
-    rewardPoints = 15
+    rewardPoints = 10
 )
 
 @Preview(name = "Components – TaskCard", showBackground = true, device = PreviewDevices.PHONE)

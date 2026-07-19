@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.biglitecode.familyhub.data.model.FamilyMember
 import com.biglitecode.familyhub.data.model.FamilyRole
-import com.biglitecode.familyhub.data.repository.FakeTaskRepository
+import com.biglitecode.familyhub.data.repository.SupabaseFamilyRepository
 import com.biglitecode.familyhub.data.session.SessionManager
 import com.biglitecode.familyhub.ui.tasks.TasksViewModel
 import com.biglitecode.familyhub.ui.theme.CreamBackground
@@ -20,37 +20,38 @@ object PreviewDevices {
     const val PHONE = "spec:width=411dp,height=891dp,dpi=420"
 }
 
+/** Generic preview users with no demo data. Phone/email are intentionally blank. */
 val PreviewParent = FamilyMember(
-    id = "m1",
-    name = "Amina Mwangi",
+    id = "preview_parent",
+    name = "Parent User",
     role = FamilyRole.PARENT,
     avatarColor = "0xFF2F6B44",
-    phoneNumber = "0712345678",
-    email = "amina@familyhub.test",
-    familyGroupId = "fg1"
+    phoneNumber = "",
+    email = "",
+    familyGroupId = "preview_group"
 )
 
 val PreviewChild = FamilyMember(
-    id = "m3",
-    name = "Wanjiku",
+    id = "preview_child",
+    name = "Child User",
     role = FamilyRole.CHILD,
     avatarColor = "0xFFE05C5C",
-    phoneNumber = "0734567890",
-    email = "wanjiku@familyhub.test",
-    familyGroupId = "fg1"
+    phoneNumber = "",
+    email = "",
+    familyGroupId = "preview_group"
 )
 
 /**
  * Wraps any screen in FamilyHub theme + cream background for previews.
- * Seeds [SessionManager] with a preview-only user and builds a [TasksViewModel]
- * on FakeTaskRepository. This is intentionally for @Preview tooling only.
+ * Seeds [SessionManager] with a generic preview user and builds a [TasksViewModel]
+ * on the empty-data SupabaseFamilyRepository. This is intentionally for @Preview tooling only.
  */
 @Composable
 fun FamilyHubPreview(
     role: FamilyRole = FamilyRole.PARENT,
     content: @Composable (TasksViewModel) -> Unit
 ) {
-    val viewModel = remember { TasksViewModel(FakeTaskRepository.getInstance()) }
+    val viewModel = remember { TasksViewModel(SupabaseFamilyRepository.getInstance()) }
     val user = if (role == FamilyRole.PARENT) PreviewParent else PreviewChild
 
     DisposableEffect(user.id) {
