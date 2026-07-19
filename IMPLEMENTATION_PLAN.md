@@ -131,6 +131,9 @@ All hardcoded demo, sample, mock, and placeholder data was removed from the runt
   - `HelpScreen.kt` — placeholder FAQs
   - `PrivacyPolicyScreen.kt` — placeholder legal text
 - **Removed SQL seed inserts** from `supabase_schema.sql` — table definitions, RLS, indexes, and functions remain.
+- **Forced light theme** in `FamilyHubTheme` (`darkTheme = false`) so the login screen and all screens always render in the warm light palette.
+- **Fixed white flash on startup** by creating `Theme.Familyhub.Splash` with a forest-green window background and applying it to `SplashActivity`.
+- **Removed all "BIG LITE CODE" references** from the app code, README, and task files.
 
 ### 2.6 Supabase Database Schema
 A complete SQL schema was written and saved to the Desktop:

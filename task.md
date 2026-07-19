@@ -309,4 +309,4 @@ After every phase: `git add . && git commit -m "Phase X: ..."` and `git push`. C
 - Total screens must be ≥ 7 per assignment minimum (this spec has 14, comfortably exceeding it).
 
 ---
-*Prepared for Dady (BIG LITE CODE) — DIT BEng Computing, BENG23COE. Rebuild after local data loss — push to GitHub after every phase this time.*
+*Prepared for Dady — DIT BEng Computing, BENG23COE. Rebuild after local data loss — push to GitHub after every phase this time.*

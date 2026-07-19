@@ -90,13 +90,6 @@ fun SplashScreen(
                 color = CardCream,
                 style = MaterialTheme.typography.bodyLarge
             )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "by BIG LITE CODE",
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 12.sp,
-                modifier = Modifier.padding(top = 4.dp)
-            )
         }
     }
 }

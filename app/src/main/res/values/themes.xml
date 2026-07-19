@@ -5,4 +5,11 @@
         <item name="android:navigationBarColor">@color/cream_background</item>
         <item name="android:windowBackground">@color/cream_background</item>
     </style>
+
+    <!-- Splash theme: shows immediately while Compose renders the splash screen. -->
+    <style name="Theme.Familyhub.Splash" parent="Theme.Familyhub">
+        <item name="android:windowBackground">@color/forest_green</item>
+        <item name="android:statusBarColor">@color/forest_green</item>
+        <item name="android:navigationBarColor">@color/forest_green</item>
+    </style>
 </resources>

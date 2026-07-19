@@ -3,7 +3,7 @@
 An Android app for managing family relationships — parents/guardians assign tasks to children/members, track completion, leave feedback, raise complaints, and stay in touch within the family unit.
 
 **Package:** `com.biglitecode.familyhub`  
-**Student project:** DIT BEng Computing (BENG23COE) — BIG LITE CODE
+**Student project:** DIT BEng Computing (BENG23COE)
 
 ---
 
@@ -31,20 +31,7 @@ An Android app for managing family relationships — parents/guardians assign ta
 | Cloud (scaffold) | Supabase client placeholders |
 | Min SDK | API 24 (Android 7.0) |
 
-Currently the app runs on an in-memory **`FakeTaskRepository`** with sample family data so you can demo without backend setup. Room and Supabase are scaffolded for later wiring.
-
----
-
-## Demo accounts
-
-| Role | Email | Password |
-|---|---|---|
-| Parent | `amina@familyhub.test` | `parent123` |
-| Child | `wanjiku@familyhub.test` | `child123` |
-
-Also available: `james@familyhub.test` / `parent123`, `brian@familyhub.test` / `child123`, `faith@familyhub.test` / `child123`.
-
-**Join family invite code (demo):** `MWNG2026`
+Currently the app uses a stub **`SupabaseFamilyRepository`** that returns empty data; real Supabase auth and sync are tracked with TODOs. `FakeTaskRepository` is kept only for `@Preview` composables.
 
 ---
 
@@ -153,4 +140,4 @@ Student coursework demo for DIT BEng Computing. Not a production privacy policy 
 
 ## Author
 
-**Dady (BIG LITE CODE)** — [github.com/dadyutenga](https://github.com/dadyutenga)
+**Dady** — [github.com/dadyutenga](https://github.com/dadyutenga)
