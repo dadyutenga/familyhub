@@ -23,24 +23,15 @@ class LoginActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             FamilyHubTheme {
-                var email by remember { mutableStateOf("") }
-                var password by remember { mutableStateOf("") }
-                var showPassword by remember { mutableStateOf(false) }
                 var loading by remember { mutableStateOf(false) }
                 var error by remember { mutableStateOf<String?>(null) }
                 val scope = rememberCoroutineScope()
                 val repo = SupabaseFamilyRepository.getInstance()
 
                 LoginScreen(
-                    email = email,
-                    onEmailChange = { email = it; error = null },
-                    password = password,
-                    onPasswordChange = { password = it; error = null },
-                    showPassword = showPassword,
-                    onTogglePassword = { showPassword = !showPassword },
-                    loading = loading,
-                    error = error,
-                    onLogin = {
+                    isLoading = loading,
+                    errorMessage = error,
+                    onLoginClick = { email, password ->
                         when {
                             !NetworkUtils.isOnline(this@LoginActivity) -> {
                                 error = "No internet connection. Please check your network and try again."
@@ -51,6 +42,7 @@ class LoginActivity : ComponentActivity() {
                             else -> {
                                 scope.launch {
                                     loading = true
+                                    error = null
                                     val result = repo.login(email, password)
                                     loading = false
                                     result.onSuccess { member ->
@@ -67,11 +59,11 @@ class LoginActivity : ComponentActivity() {
                             }
                         }
                     },
-                    onForgotPassword = {
-                        startActivity(Intent(this@LoginActivity, ResetPasswordActivity::class.java))
-                    },
-                    onCreateAccount = {
+                    onSignUpClick = {
                         startActivity(Intent(this@LoginActivity, SignUpActivity::class.java))
+                    },
+                    onForgotPasswordClick = {
+                        startActivity(Intent(this@LoginActivity, ResetPasswordActivity::class.java))
                     }
                 )
             }

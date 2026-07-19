@@ -18,6 +18,8 @@ private val LightColorScheme = lightColorScheme(
     onSurface = TextBrown,
     error = CoralRed,
     onError = Color.White,
+    errorContainer = ErrorContainer,
+    onErrorContainer = OnErrorContainer,
     primaryContainer = ForestGreenLight,
     onPrimaryContainer = ForestGreen,
     secondaryContainer = GoldYellowLight,
@@ -35,7 +37,9 @@ private val DarkColorScheme = darkColorScheme(
     surface = Color(0xFF2A2218),
     onSurface = CreamBackground,
     error = CoralRed,
-    onError = Color.White
+    onError = Color.White,
+    errorContainer = CoralRed.copy(alpha = 0.20f),
+    onErrorContainer = CreamBackground
 )
 
 @Composable

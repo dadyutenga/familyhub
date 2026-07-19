@@ -114,6 +114,19 @@ All hardcoded demo, sample, mock, and placeholder data was removed from the runt
   - Login screen demo account hints
   - Reset password "(demo: success)" message
   - Sign-up "try MWNG2026" invite-code hint
+- **Redesigned `LoginScreen.kt`** with a branded header gradient, overlapping form card,
+  custom gradient button, error banner, and footer. It now uses the hoisted signature:
+  ```kotlin
+  fun LoginScreen(
+      isLoading: Boolean,
+      errorMessage: String?,
+      onLoginClick: (email: String, password: String) -> Unit,
+      onSignUpClick: () -> Unit,
+      onForgotPasswordClick: () -> Unit
+  )
+  ```
+  All colors resolve to existing theme tokens; new semantic tokens (`ForestGreenDark`,
+  `ErrorContainer`, `OnErrorContainer`) were added to the theme files.
 - **Marked stub screens** with `// STUB:` and `// TODO(supabase):` comments:
   - `HelpScreen.kt` — placeholder FAQs
   - `PrivacyPolicyScreen.kt` — placeholder legal text
