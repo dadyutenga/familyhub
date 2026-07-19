@@ -61,15 +61,34 @@ val client by lazy {
 }
 ```
 
-### 2.3 Supabase Credentials in BuildConfig
-Real project credentials were placed in `app/build.gradle.kts`:
+### 2.3 Supabase Credentials (Secure via local.properties)
+Credentials are stored in `local.properties` (which is `.gitignore`d) and injected into `BuildConfig` at build time:
 
-```kotlin
-buildConfigField("String", "SUPABASE_URL", "\"https://fjsftwxvfkxalkdqqmqg.supabase.co\"")
-buildConfigField("String", "SUPABASE_ANON_KEY", "\"sb_publishable_5J7yW4emAP8nMtQCwZzKWw_hWYrC9j5\"")
+```properties
+# local.properties
+SUPABASE_URL=https://fjsftwxvfkxalkdqqmqg.supabase.co
+SUPABASE_ANON_KEY=sb_publishable_5J7yW4emAP8nMtQCwZzKWw_hWYrC9j5
 ```
 
-> ⚠️ **Security note for v2:** For production, move these to `local.properties` or a secrets manager so they are not committed to Git.
+```kotlin
+// app/build.gradle.kts
+import java.util.Properties
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use { localProperties.load(it) }
+}
+
+android {
+    defaultConfig {
+        buildConfigField("String", "SUPABASE_URL", "\"${localProperties.getProperty("SUPABASE_URL") ?: ""}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${localProperties.getProperty("SUPABASE_ANON_KEY") ?: ""}\"")
+    }
+}
+```
+
+> ✅ **Security note:** The real credentials are no longer in the committed source code. They live only in `local.properties` on the local machine.
 
 ### 2.4 Demo MainActivity + TodoItem
 Created `MainActivity.kt` and `TodoItem.kt` as a quick Supabase Compose demo:
@@ -215,13 +234,8 @@ class SupabaseFamilyRepository(
 ### 5.4 Single Activity + Navigation
 Consider migrating to a single `MainActivity` with Compose Navigation instead of multiple activities.
 
-### 5.5 Secrets Management
-Use `local.properties` for secrets and read them in Gradle:
-
-```kotlin
-val supabaseUrl = localProperties.getProperty("SUPABASE_URL")
-buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
-```
+### 5.5 Secrets Management (Done in v1)
+Credentials now live in `local.properties` and are injected into `BuildConfig` at build time. This file is `.gitignore`d and will not be committed. New team members must create their own `local.properties` file with the project credentials.
 
 ### 5.6 Consistent ID Strategy
 Use `UUID` (or Supabase-generated `uuid`) for all IDs. Update Kotlin models from `String` to `UUID` if desired, or keep `String` and generate UUIDs client-side.
@@ -256,13 +270,12 @@ sealed class UiState<out T> {
 ## 7. Next Steps for v2
 
 1. Create a new repository/branch.
-2. Copy the Supabase setup from this plan.
+2. Copy the Supabase setup from this plan (including `local.properties` setup).
 3. Implement `SupabaseFamilyRepository` against the schema.
 4. Wire authentication to Supabase Auth.
 5. Replace `FakeTaskRepository` with the new repository.
 6. Add dependency injection.
 7. Test all flows end-to-end.
-8. Move credentials to `local.properties`.
 
 ---
 
