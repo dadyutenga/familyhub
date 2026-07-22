@@ -42,6 +42,7 @@ import com.biglitecode.familyhub.ui.preview.FamilyHubPreview
 import com.biglitecode.familyhub.ui.preview.PreviewDevices
 import com.biglitecode.familyhub.ui.tasks.TasksViewModel
 import com.biglitecode.familyhub.ui.theme.CardCream
+import com.biglitecode.familyhub.ui.theme.CoralRed
 import com.biglitecode.familyhub.ui.theme.ForestGreen
 import com.biglitecode.familyhub.ui.theme.ForestGreenLight
 import com.biglitecode.familyhub.ui.theme.GoldYellow
@@ -57,6 +58,7 @@ fun DashboardScreen(
     val user by viewModel.currentUser.collectAsStateWithLifecycle()
     val members by viewModel.members.collectAsStateWithLifecycle()
     val visibleTasks by viewModel.visibleTasks.collectAsStateWithLifecycle()
+    val pendingSyncCount by viewModel.pendingSyncCount.collectAsStateWithLifecycle()
     val isParent = user?.role == FamilyRole.PARENT
     val tasksHeader = if (isParent) "Today's Tasks" else "My Tasks"
     val doneCount = visibleTasks.count { it.status == TaskStatus.DONE }
@@ -84,6 +86,9 @@ fun DashboardScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextMutedBrown
             )
+            // Sync status badge
+            Spacer(Modifier.height(6.dp))
+            SyncStatusBadge(pendingCount = pendingSyncCount, isOnline = viewModel.isOnline())
         }
 
         item {
@@ -183,6 +188,47 @@ fun DashboardScreen(
         }
 
         item { Spacer(Modifier.height(16.dp)) }
+    }
+}
+
+// ── Sync status badge ──────────────────────────────────────────────────
+@Composable
+private fun SyncStatusBadge(pendingCount: Int, isOnline: Boolean) {
+    val (bg, text, icon) = when {
+        !isOnline -> Triple(
+            CoralRed.copy(alpha = 0.12f),
+            CoralRed,
+            "📴"
+        )
+        pendingCount > 0 -> Triple(
+            GoldYellow.copy(alpha = 0.2f),
+            TextBrown,
+            "⏳"
+        )
+        else -> Triple(
+            ForestGreenLight,
+            ForestGreen,
+            "✅"
+        )
+    }
+    val label = when {
+        !isOnline -> "Offline — will sync when connected"
+        pendingCount > 0 -> "$pendingCount task(s) syncing…"
+        else -> "All synced"
+    }
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(bg)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+    ) {
+        Text(
+            text = "$icon $label",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            color = text
+        )
     }
 }
 

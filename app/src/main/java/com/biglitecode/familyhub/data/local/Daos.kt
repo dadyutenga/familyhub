@@ -18,14 +18,23 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE id = :id")
     suspend fun getById(id: String): TaskEntity?
 
+    @Query("SELECT * FROM tasks WHERE pendingSync = 1")
+    suspend fun getPendingSync(): List<TaskEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(task: TaskEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertAll(tasks: List<TaskEntity>)
 
     @Update
     suspend fun update(task: TaskEntity)
 
     @Query("DELETE FROM tasks WHERE id = :id")
     suspend fun delete(id: String)
+
+    @Query("DELETE FROM tasks")
+    suspend fun deleteAll()
 }
 
 @Dao

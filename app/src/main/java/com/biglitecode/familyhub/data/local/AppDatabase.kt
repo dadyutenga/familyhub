@@ -45,7 +45,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "familyhub.db"
-                ).fallbackToDestructiveMigration().build().also { instance = it }
+                ).fallbackToDestructiveMigration(dropAllTables = true).build().also { instance = it }
             }
         }
     }

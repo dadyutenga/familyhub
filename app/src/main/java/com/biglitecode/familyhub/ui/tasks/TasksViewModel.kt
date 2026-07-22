@@ -11,6 +11,7 @@ import com.biglitecode.familyhub.data.model.Feedback
 import com.biglitecode.familyhub.data.model.Task
 import com.biglitecode.familyhub.data.model.TaskStatus
 import com.biglitecode.familyhub.data.repository.FamilyRepository
+import com.biglitecode.familyhub.data.repository.TaskRepository
 import com.biglitecode.familyhub.data.session.SessionManager
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,13 +20,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-class TasksViewModel(private val repository: FamilyRepository) : ViewModel() {
+class TasksViewModel(
+    private val repository: FamilyRepository,
+    private val taskRepository: TaskRepository
+) : ViewModel() {
 
     val currentUser: StateFlow<FamilyMember?> = SessionManager.currentUser
 
-    val tasks: StateFlow<List<Task>> = repository.observeTasks()
+    // Tasks now come from Room (offline-first) via TaskRepository
+    val tasks: StateFlow<List<Task>> = taskRepository.observeTasks()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // Non-task data still comes from Supabase via FamilyRepository
     val members: StateFlow<List<FamilyMember>> = repository.observeMembers()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -37,6 +43,10 @@ class TasksViewModel(private val repository: FamilyRepository) : ViewModel() {
 
     val familyGroup: StateFlow<FamilyGroup?> = repository.observeFamilyGroup()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // Sync status — number of tasks pending sync
+    val pendingSyncCount: StateFlow<Int> = taskRepository.observePendingCount()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     val visibleTasks: StateFlow<List<Task>> = combine(tasks, currentUser) { all, user ->
         if (user == null) emptyList()
@@ -66,25 +76,32 @@ class TasksViewModel(private val repository: FamilyRepository) : ViewModel() {
                 createdAt = System.currentTimeMillis(),
                 rewardPoints = rewardPoints
             )
-            repository.addTask(task)
+            taskRepository.addTask(task)
             onAdded(task)
         }
     }
 
     fun markComplete(task: Task) {
         viewModelScope.launch {
-            repository.updateTask(task.copy(status = TaskStatus.DONE))
+            taskRepository.updateTask(task.copy(status = TaskStatus.DONE))
         }
     }
 
     fun updateTask(task: Task) {
-        viewModelScope.launch { repository.updateTask(task) }
+        viewModelScope.launch { taskRepository.updateTask(task) }
     }
 
     fun deleteTask(taskId: String) {
-        viewModelScope.launch { repository.deleteTask(taskId) }
+        viewModelScope.launch { taskRepository.deleteTask(taskId) }
     }
 
+    fun syncPendingTasks() {
+        viewModelScope.launch { taskRepository.syncPendingTasks() }
+    }
+
+    fun isOnline(): Boolean = taskRepository.isOnline()
+
+    // Non-task operations still use FamilyRepository
     fun submitFeedback(taskId: String, rating: Int, comment: String) {
         val user = currentUser.value ?: return
         viewModelScope.launch {
@@ -131,10 +148,13 @@ class TasksViewModel(private val repository: FamilyRepository) : ViewModel() {
         }
     }
 
-    class Factory(private val repository: FamilyRepository) : ViewModelProvider.Factory {
+    class Factory(
+        private val repository: FamilyRepository,
+        private val taskRepository: TaskRepository
+    ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return TasksViewModel(repository) as T
+            return TasksViewModel(repository, taskRepository) as T
         }
     }
 }

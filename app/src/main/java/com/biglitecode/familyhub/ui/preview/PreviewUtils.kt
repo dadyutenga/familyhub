@@ -6,10 +6,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.biglitecode.familyhub.data.model.FamilyMember
 import com.biglitecode.familyhub.data.model.FamilyRole
 import com.biglitecode.familyhub.data.repository.SupabaseFamilyRepository
+import com.biglitecode.familyhub.data.repository.TaskRepository
 import com.biglitecode.familyhub.data.session.SessionManager
 import com.biglitecode.familyhub.ui.tasks.TasksViewModel
 import com.biglitecode.familyhub.ui.theme.CreamBackground
@@ -51,7 +53,13 @@ fun FamilyHubPreview(
     role: FamilyRole = FamilyRole.PARENT,
     content: @Composable (TasksViewModel) -> Unit
 ) {
-    val viewModel = remember { TasksViewModel(SupabaseFamilyRepository.getInstance()) }
+    val context = LocalContext.current
+    val viewModel = remember {
+        TasksViewModel(
+            SupabaseFamilyRepository.getInstance(),
+            TaskRepository.getInstance(context)
+        )
+    }
     val user = if (role == FamilyRole.PARENT) PreviewParent else PreviewChild
 
     DisposableEffect(user.id) {

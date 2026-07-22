@@ -53,7 +53,8 @@ data class TaskEntity(
     val dueDate: Long,
     val status: String,
     val createdAt: Long,
-    val rewardPoints: Int
+    val rewardPoints: Int,
+    val pendingSync: Boolean = false
 ) {
     fun toModel() = Task(
         id = id,
@@ -69,7 +70,7 @@ data class TaskEntity(
     )
 
     companion object {
-        fun from(t: Task) = TaskEntity(
+        fun from(t: Task, pendingSync: Boolean = false) = TaskEntity(
             id = t.id,
             title = t.title,
             description = t.description,
@@ -79,7 +80,8 @@ data class TaskEntity(
             dueDate = t.dueDate,
             status = t.status.name,
             createdAt = t.createdAt,
-            rewardPoints = t.rewardPoints
+            rewardPoints = t.rewardPoints,
+            pendingSync = pendingSync
         )
     }
 }

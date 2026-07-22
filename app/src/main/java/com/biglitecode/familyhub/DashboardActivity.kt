@@ -24,7 +24,8 @@ import com.biglitecode.familyhub.ui.theme.FamilyHubTheme
 class DashboardActivity : ComponentActivity() {
 
     private val viewModel: TasksViewModel by viewModels {
-        TasksViewModel.Factory((application as FamilyHubApp).repository)
+        val app = application as FamilyHubApp
+        TasksViewModel.Factory(app.repository, app.taskRepository)
     }
 
     private val notificationPermissionLauncher = registerForActivityResult(
