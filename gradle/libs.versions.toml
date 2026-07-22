@@ -12,8 +12,8 @@ composeBom = "2024.12.01"
 navigationCompose = "2.8.5"
 room = "2.6.1"
 coroutines = "1.9.0"
-supabase = "2.6.0"
-ktor = "2.3.12"
+supabase = "3.0.0"
+ktor = "3.0.0"
 coil = "2.6.0"
 accompanist = "0.36.0"
 ksp = "2.2.10-2.0.2"
@@ -44,10 +44,10 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 supabase-bom = { group = "io.github.jan-tennert.supabase", name = "bom", version.ref = "supabase" }
-supabase-kt = { group = "io.github.jan-tennert.supabase", name = "supabase-kt" }
 supabase-postgrest = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt" }
-supabase-gotrue = { group = "io.github.jan-tennert.supabase", name = "gotrue-kt" }
+supabase-auth = { group = "io.github.jan-tennert.supabase", name = "auth-kt" }
 supabase-realtime = { group = "io.github.jan-tennert.supabase", name = "realtime-kt" }
+supabase-storage = { group = "io.github.jan-tennert.supabase", name = "storage-kt" }
 ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version.ref = "ktor" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }

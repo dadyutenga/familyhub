@@ -26,7 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -35,15 +34,13 @@ import com.biglitecode.familyhub.ui.preview.FamilyHubPreview
 import com.biglitecode.familyhub.ui.preview.PreviewDevices
 import com.biglitecode.familyhub.ui.tasks.TasksViewModel
 import com.biglitecode.familyhub.ui.theme.CardCream
-import com.biglitecode.familyhub.ui.theme.CoralRed
 import com.biglitecode.familyhub.ui.theme.ForestGreen
 import com.biglitecode.familyhub.ui.theme.TextBrown
 import com.biglitecode.familyhub.ui.theme.TextMutedBrown
 
 @Composable
 fun SettingsScreen(
-    viewModel: TasksViewModel,
-    onLogout: () -> Unit
+    viewModel: TasksViewModel
 ) {
     val user by viewModel.currentUser.collectAsStateWithLifecycle()
     val group by viewModel.familyGroup.collectAsStateWithLifecycle()
@@ -109,12 +106,6 @@ fun SettingsScreen(
         }
 
         Spacer(Modifier.height(8.dp))
-        TextButton(
-            onClick = onLogout,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Logout", color = CoralRed, fontWeight = FontWeight.Bold)
-        }
     }
 }
 
@@ -155,7 +146,7 @@ private fun SettingRow(label: String, value: String) {
 @Composable
 private fun SettingsScreenParentPreview() {
     FamilyHubPreview(role = FamilyRole.PARENT) { vm ->
-        SettingsScreen(viewModel = vm, onLogout = {})
+        SettingsScreen(viewModel = vm)
     }
 }
 
@@ -163,6 +154,6 @@ private fun SettingsScreenParentPreview() {
 @Composable
 private fun SettingsScreenChildPreview() {
     FamilyHubPreview(role = FamilyRole.CHILD) { vm ->
-        SettingsScreen(viewModel = vm, onLogout = {})
+        SettingsScreen(viewModel = vm)
     }
 }

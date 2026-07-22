@@ -5,17 +5,22 @@ import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Task
+import androidx.compose.material.icons.outlined.Assessment
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Task
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class BottomNavItem(
     val route: String,
     val label: String,
-    val icon: ImageVector
+    val icon: ImageVector,
+    val iconOutlined: ImageVector
 ) {
-    data object Home : BottomNavItem("home", "Home", Icons.Filled.Home)
-    data object Tasks : BottomNavItem("tasks", "Tasks", Icons.Filled.Task)
-    data object Report : BottomNavItem("report", "Report", Icons.Filled.Assessment)
-    data object Settings : BottomNavItem("settings", "Settings", Icons.Filled.Settings)
+    data object Home : BottomNavItem("home", "Home", Icons.Filled.Home, Icons.Outlined.Home)
+    data object Tasks : BottomNavItem("tasks", "Tasks", Icons.Filled.Task, Icons.Outlined.Task)
+    data object Report : BottomNavItem("report", "Report", Icons.Filled.Assessment, Icons.Outlined.Assessment)
+    data object Settings : BottomNavItem("settings", "Settings", Icons.Filled.Settings, Icons.Outlined.Settings)
 
     companion object {
         val items = listOf(Home, Tasks, Report, Settings)

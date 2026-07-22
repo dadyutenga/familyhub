@@ -1,8 +1,5 @@
 package com.biglitecode.familyhub.ui.account
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -91,22 +87,6 @@ fun AccountScreen(viewModel: TasksViewModel) {
                     Text("Family group", color = TextMutedBrown, style = MaterialTheme.typography.bodySmall)
                     Text(group?.name ?: "—", style = MaterialTheme.typography.titleLarge)
                     Text("${members.size} members", color = TextMutedBrown)
-                    Spacer(Modifier.height(8.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "Invite code: ${group?.inviteCode ?: "—"}",
-                            color = ForestGreen,
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
-                            modifier = Modifier.weight(1f)
-                        )
-                        IconButton(onClick = {
-                            val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                            cm.setPrimaryClip(ClipData.newPlainText("invite", group?.inviteCode.orEmpty()))
-                            Toast.makeText(context, "Invite code copied", Toast.LENGTH_SHORT).show()
-                        }) {
-                            Icon(Icons.Filled.ContentCopy, contentDescription = "Copy", tint = ForestGreen)
-                        }
-                    }
                 }
             }
         }

@@ -2,28 +2,13 @@ package com.biglitecode.familyhub.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Help
-import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.ContactPhone
-import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.PrivacyTip
-import androidx.compose.material.icons.filled.ReportProblem
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -43,7 +28,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.biglitecode.familyhub.data.model.FamilyRole
 import com.biglitecode.familyhub.ui.account.AccountScreen
 import com.biglitecode.familyhub.ui.complains.ComplainsScreen
 import com.biglitecode.familyhub.ui.contact.ContactScreen
@@ -57,7 +41,6 @@ import com.biglitecode.familyhub.ui.tasks.TaskDetailScreen
 import com.biglitecode.familyhub.ui.tasks.TasksScreen
 import com.biglitecode.familyhub.ui.tasks.TasksViewModel
 import com.biglitecode.familyhub.ui.theme.CardCream
-import com.biglitecode.familyhub.ui.theme.CoralRed
 import com.biglitecode.familyhub.ui.theme.CreamBackground
 import com.biglitecode.familyhub.ui.theme.ForestGreen
 import com.biglitecode.familyhub.ui.theme.TextBrown
@@ -99,69 +82,19 @@ fun FamilyHubNavGraph(
             ModalDrawerSheet(
                 drawerContainerColor = CardCream
             ) {
-                Text(
-                    text = "FamilyHub",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = ForestGreen,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp)
-                )
-                Text(
-                    text = user?.name ?: "",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextBrown,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
-                Text(
-                    text = if (user?.role == FamilyRole.PARENT) "Parent/Guardian" else "Child/Member",
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
-                )
-                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-
-                val drawerItems = listOf(
-                    Triple(Routes.ACCOUNT, "Account", Icons.Filled.AccountCircle),
-                    Triple(Routes.SETTINGS, "Settings", Icons.Filled.Settings),
-                    Triple(Routes.FEEDBACK, "Task Feedback", Icons.Filled.Feedback),
-                    Triple(Routes.COMPLAINS, "Complaints", Icons.Filled.ReportProblem),
-                    Triple(Routes.HELP, "Help & FAQ", Icons.AutoMirrored.Filled.Help),
-                    Triple(Routes.CONTACT, "Contact", Icons.Filled.ContactPhone),
-                    Triple(Routes.PRIVACY, "Privacy Policy", Icons.Filled.PrivacyTip)
-                )
-                drawerItems.forEach { (route, label, icon) ->
-                    NavigationDrawerItem(
-                        label = { Text(label) },
-                        selected = currentDestination?.route == route,
-                        onClick = {
-                            scope.launch { drawerState.close() }
-                            navController.navigate(route) {
-                                launchSingleTop = true
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        colors = NavigationDrawerItemDefaults.colors(
-                            selectedContainerColor = ForestGreen.copy(alpha = 0.12f),
-                            selectedIconColor = ForestGreen,
-                            selectedTextColor = ForestGreen
-                        ),
-                        modifier = Modifier.padding(horizontal = 12.dp)
-                    )
-                }
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                NavigationDrawerItem(
-                    label = { Text("Logout", color = CoralRed) },
-                    selected = false,
-                    onClick = {
+                FamilyHubDrawerContent(
+                    user = user,
+                    currentRoute = currentDestination?.route,
+                    onItemClick = { route ->
+                        scope.launch { drawerState.close() }
+                        navController.navigate(route) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onLogout = {
                         scope.launch { drawerState.close() }
                         onLogout()
-                    },
-                    icon = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Logout,
-                            contentDescription = "Logout",
-                            tint = CoralRed
-                        )
-                    },
-                    modifier = Modifier.padding(horizontal = 12.dp)
+                    }
                 )
             }
         }
@@ -184,37 +117,35 @@ fun FamilyHubNavGraph(
             },
             bottomBar = {
                 if (showBottomBar) {
-                    NavigationBar(
-                        containerColor = CardCream,
-                        contentColor = ForestGreen
-                    ) {
-                        BottomNavItem.items.forEach { item ->
-                            val selected = currentDestination?.hierarchy?.any {
-                                it.route == item.route
-                            } == true
-                            NavigationBarItem(
-                                selected = selected,
-                                onClick = {
-                                    navController.navigate(item.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                },
-                                icon = { Icon(item.icon, contentDescription = item.label) },
-                                label = { Text(item.label) },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = ForestGreen,
-                                    selectedTextColor = ForestGreen,
-                                    indicatorColor = ForestGreen.copy(alpha = 0.15f),
-                                    unselectedIconColor = TextBrown.copy(alpha = 0.55f),
-                                    unselectedTextColor = TextBrown.copy(alpha = 0.55f)
-                                )
-                            )
+                    // Home is the brand circle; other items go in the pill
+                    val navItems = BottomNavItem.items.filter { it.route != Routes.HOME }
+                    val isHomeSelected = currentDestination?.route == Routes.HOME
+                    val selectedIndex = if (isHomeSelected) -1
+                        else navItems.indexOfFirst {
+                            currentDestination?.hierarchy?.any { d -> d.route == it.route } == true
                         }
-                    }
+                    FamilyHubBottomNav(
+                        items = navItems,
+                        selectedIndex = selectedIndex,
+                        onSelect = { index ->
+                            navController.navigate(navItems[index].route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        onBrandClick = {
+                            navController.navigate(Routes.HOME) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
                 }
             }
         ) { padding ->
@@ -250,7 +181,7 @@ fun FamilyHubNavGraph(
                     ReportScreen(viewModel = viewModel)
                 }
                 composable(Routes.SETTINGS) {
-                    SettingsScreen(viewModel = viewModel, onLogout = onLogout)
+                    SettingsScreen(viewModel = viewModel)
                 }
                 composable(Routes.ACCOUNT) {
                     AccountScreen(viewModel = viewModel)
@@ -268,7 +199,7 @@ fun FamilyHubNavGraph(
                     ContactScreen(viewModel = viewModel)
                 }
                 composable(Routes.PRIVACY) {
-                    PrivacyPolicyScreen(onBack = { navController.popBackStack() })
+                    PrivacyPolicyScreen()
                 }
             }
         }

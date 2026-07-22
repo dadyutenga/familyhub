@@ -18,7 +18,7 @@ class PrivacyPolicyActivity : ComponentActivity() {
         setContent {
             FamilyHubTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = CreamBackground) {
-                    PrivacyPolicyScreen(onBack = { finish() })
+                    PrivacyPolicyScreen()
                 }
             }
         }
