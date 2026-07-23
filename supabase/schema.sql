@@ -74,6 +74,19 @@ CREATE TABLE IF NOT EXISTS complaints (
     family_group_id TEXT NOT NULL REFERENCES family_groups(id) ON DELETE CASCADE
 );
 
+-- Family reminders (recurring daily/weekly notifications)
+CREATE TABLE IF NOT EXISTS family_reminders (
+    id              TEXT PRIMARY KEY,
+    family_group_id TEXT NOT NULL REFERENCES family_groups(id) ON DELETE CASCADE,
+    title           TEXT NOT NULL,
+    reminder_time   TEXT NOT NULL,              -- "HH:mm" format
+    repeat_type     TEXT NOT NULL CHECK (repeat_type IN ('DAILY', 'WEEKLY', 'SPECIFIC_DAYS')) DEFAULT 'DAILY',
+    days_of_week    TEXT,                       -- nullable, comma-separated "MON,WED,FRI"
+    is_active       BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by      TEXT NOT NULL REFERENCES family_members(id) ON DELETE CASCADE,
+    created_at      BIGINT NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT
+);
+
 -- Demo table for the MainActivity TodoList example
 CREATE TABLE IF NOT EXISTS todos (
     id              INTEGER PRIMARY KEY,
@@ -89,6 +102,7 @@ ALTER TABLE family_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE feedback ENABLE ROW LEVEL SECURITY;
 ALTER TABLE complaints ENABLE ROW LEVEL SECURITY;
+ALTER TABLE family_reminders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE todos ENABLE ROW LEVEL SECURITY;
 
 -- Helper function: get current user's family_group_id
@@ -231,6 +245,24 @@ CREATE POLICY "complaints_delete_parents"
     ON complaints FOR DELETE
     USING (public.current_user_is_parent());
 
+-- family_reminders policies
+CREATE POLICY "family_reminders_select_group"
+    ON family_reminders FOR SELECT
+    USING (family_group_id = public.current_user_family_group_id());
+
+CREATE POLICY "family_reminders_insert_parents"
+    ON family_reminders FOR INSERT
+    WITH CHECK (public.current_user_is_parent() AND family_group_id = public.current_user_family_group_id());
+
+CREATE POLICY "family_reminders_update_parents"
+    ON family_reminders FOR UPDATE
+    USING (public.current_user_is_parent())
+    WITH CHECK (family_group_id = public.current_user_family_group_id());
+
+CREATE POLICY "family_reminders_delete_parents"
+    ON family_reminders FOR DELETE
+    USING (public.current_user_is_parent());
+
 -- todos policy: allow all authenticated users to read demo todos
 CREATE POLICY "todos_select_all"
     ON todos FOR SELECT
@@ -264,6 +296,8 @@ CREATE INDEX IF NOT EXISTS idx_complaints_created_at   ON complaints(created_at 
 
 CREATE INDEX IF NOT EXISTS idx_family_groups_invite    ON family_groups(invite_code);
 
+CREATE INDEX IF NOT EXISTS idx_family_reminders_group ON family_reminders(family_group_id);
+
 -- ============================================================================
 -- 5. SAMPLE / DEMO DATA (REMOVED)
 -- ============================================================================
@@ -280,7 +314,7 @@ CREATE INDEX IF NOT EXISTS idx_family_groups_invite    ON family_groups(invite_c
 --
 -- BEGIN;
 --   DROP PUBLICATION IF EXISTS supabase_realtime;
---   CREATE PUBLICATION supabase_realtime FOR TABLE family_groups, family_members, tasks, feedback, complaints, todos;
+--   CREATE PUBLICATION supabase_realtime FOR TABLE family_groups, family_members, tasks, feedback, complaints, family_reminders, todos;
 -- COMMIT;
 -- ============================================================================
 

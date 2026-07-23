@@ -39,6 +39,7 @@ object Routes {
     const val HELP = "help"
     const val CONTACT = "contact"
     const val PRIVACY = "privacy"
+    const val REMINDERS = "reminders"
 
     fun taskDetail(taskId: String) = "task_detail/$taskId"
 }

@@ -24,6 +24,7 @@ class FamilyHubApp : Application() {
         super.onCreate()
         instance = this
         NotificationHelper.createChannel(this)
+        NotificationHelper.createReminderChannel(this)
         registerNetworkCallback()
     }
 

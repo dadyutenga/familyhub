@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ContactPhone
 import androidx.compose.material.icons.filled.Feedback
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.ReportProblem
 import androidx.compose.material.icons.filled.Settings
@@ -109,6 +110,13 @@ fun FamilyHubDrawerContent(
                 label = "Complaints",
                 isActive = currentRoute == Routes.COMPLAINS,
                 onClick = { onItemClick(Routes.COMPLAINS) }
+            )
+            Spacer(Modifier.height(4.dp))
+            DrawerMenuItem(
+                icon = Icons.Filled.Notifications,
+                label = "Reminders",
+                isActive = currentRoute == Routes.REMINDERS,
+                onClick = { onItemClick(Routes.REMINDERS) }
             )
             Spacer(Modifier.height(4.dp))
             DrawerMenuItem(

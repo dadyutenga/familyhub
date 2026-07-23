@@ -15,17 +15,26 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import com.biglitecode.familyhub.data.session.SessionManager
 import com.biglitecode.familyhub.navigation.FamilyHubNavGraph
+import com.biglitecode.familyhub.ui.reminders.RemindersViewModel
 import com.biglitecode.familyhub.ui.tasks.TasksViewModel
 import com.biglitecode.familyhub.ui.theme.CreamBackground
 import com.biglitecode.familyhub.ui.theme.FamilyHubTheme
+import com.biglitecode.familyhub.util.ReminderScheduler
 
 class DashboardActivity : ComponentActivity() {
 
     private val viewModel: TasksViewModel by viewModels {
         val app = application as FamilyHubApp
         TasksViewModel.Factory(app.repository, app.taskRepository)
+    }
+
+    private val remindersViewModel: RemindersViewModel by viewModels {
+        val app = application as FamilyHubApp
+        RemindersViewModel.Factory(app.repository, application)
     }
 
     private val notificationPermissionLauncher = registerForActivityResult(
@@ -48,6 +57,7 @@ class DashboardActivity : ComponentActivity() {
             return
         }
         requestNotificationPermissionIfNeeded()
+        rescheduleRemindersOnStart()
         enableEdgeToEdge()
         setContent {
             FamilyHubTheme {
@@ -57,6 +67,7 @@ class DashboardActivity : ComponentActivity() {
                 ) {
                     FamilyHubNavGraph(
                         viewModel = viewModel,
+                        remindersViewModel = remindersViewModel,
                         onLogout = {
                             SessionManager.logout()
                             startActivity(
@@ -76,6 +87,20 @@ class DashboardActivity : ComponentActivity() {
             val permission = Manifest.permission.POST_NOTIFICATIONS
             if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
                 notificationPermissionLauncher.launch(permission)
+            }
+        }
+    }
+
+    /**
+     * Re-register all active reminders' WorkManager jobs on app start.
+     * This ensures reminders survive device reboots or WorkManager job clearing.
+     */
+    private fun rescheduleRemindersOnStart() {
+        val app = application as FamilyHubApp
+        lifecycleScope.launch {
+            runCatching {
+                val reminders = app.repository.getReminders()
+                ReminderScheduler.rescheduleAllReminders(this@DashboardActivity, reminders)
             }
         }
     }

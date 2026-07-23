@@ -33,6 +33,8 @@ import com.biglitecode.familyhub.ui.complains.ComplainsScreen
 import com.biglitecode.familyhub.ui.contact.ContactScreen
 import com.biglitecode.familyhub.ui.dashboard.DashboardScreen
 import com.biglitecode.familyhub.ui.feedback.FeedbackScreen
+import com.biglitecode.familyhub.ui.reminders.RemindersScreen
+import com.biglitecode.familyhub.ui.reminders.RemindersViewModel
 import com.biglitecode.familyhub.ui.help.HelpScreen
 import com.biglitecode.familyhub.ui.privacy.PrivacyPolicyScreen
 import com.biglitecode.familyhub.ui.report.ReportScreen
@@ -50,6 +52,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun FamilyHubNavGraph(
     viewModel: TasksViewModel,
+    remindersViewModel: RemindersViewModel,
     onLogout: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -73,6 +76,7 @@ fun FamilyHubNavGraph(
         Routes.HELP -> "Help"
         Routes.CONTACT -> "Contact"
         Routes.PRIVACY -> "Privacy Policy"
+        Routes.REMINDERS -> "Reminders"
         else -> if (currentDestination?.route?.startsWith("task_detail") == true) "Task Detail" else "FamilyHub"
     }
 
@@ -200,6 +204,9 @@ fun FamilyHubNavGraph(
                 }
                 composable(Routes.PRIVACY) {
                     PrivacyPolicyScreen()
+                }
+                composable(Routes.REMINDERS) {
+                    RemindersScreen(viewModel = remindersViewModel)
                 }
             }
         }

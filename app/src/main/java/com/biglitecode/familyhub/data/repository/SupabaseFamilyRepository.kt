@@ -4,12 +4,14 @@ import com.biglitecode.familyhub.core.SupabaseClientProvider
 import com.biglitecode.familyhub.data.model.Complaint
 import com.biglitecode.familyhub.data.model.FamilyGroup
 import com.biglitecode.familyhub.data.model.FamilyMember
+import com.biglitecode.familyhub.data.model.FamilyReminder
 import com.biglitecode.familyhub.data.model.FamilyRole
 import com.biglitecode.familyhub.data.model.Feedback
 import com.biglitecode.familyhub.data.model.Task
 import com.biglitecode.familyhub.data.remote.dto.ComplaintRow
 import com.biglitecode.familyhub.data.remote.dto.FamilyGroupRow
 import com.biglitecode.familyhub.data.remote.dto.FamilyMemberRow
+import com.biglitecode.familyhub.data.remote.dto.FamilyReminderRow
 import com.biglitecode.familyhub.data.remote.dto.FeedbackRow
 import com.biglitecode.familyhub.data.remote.dto.TaskRow
 import com.biglitecode.familyhub.data.remote.dto.toDomain
@@ -51,6 +53,7 @@ class SupabaseFamilyRepository : FamilyRepository {
     private val _complaints = MutableStateFlow<List<Complaint>>(emptyList())
     private val _feedback = MutableStateFlow<List<Feedback>>(emptyList())
     private val _group = MutableStateFlow<FamilyGroup?>(null)
+    private val _reminders = MutableStateFlow<List<FamilyReminder>>(emptyList())
 
     // -------------------------------------------------------------------------
     // Observe — one fresh fetch per collector, then tail the local cache.
@@ -81,12 +84,18 @@ class SupabaseFamilyRepository : FamilyRepository {
         emitAll(_group.asStateFlow())
     }
 
+    override fun observeReminders(): Flow<List<FamilyReminder>> = flow {
+        runCatching { refreshReminders() }
+        emitAll(_reminders.asStateFlow())
+    }
+
     // -------------------------------------------------------------------------
     // Reads — always hit Supabase so callers get fresh data.
     // -------------------------------------------------------------------------
 
     override suspend fun getTasks(): List<Task> = fetchTasks()
     override suspend fun getMembers(): List<FamilyMember> = fetchMembers()
+    override suspend fun getReminders(): List<FamilyReminder> = fetchReminders()
 
     override suspend fun getTaskById(id: String): Task? {
         return client.postgrest["tasks"]
@@ -146,6 +155,32 @@ class SupabaseFamilyRepository : FamilyRepository {
         _group.update { it?.copy(name = name) }
     }
 
+    override suspend fun updatePhoneNumber(memberId: String, phoneNumber: String) {
+        client.postgrest["family_members"].update(
+            mapOf("phone_number" to phoneNumber)
+        ) { filter { eq("id", memberId) } }
+        _members.update { list ->
+            list.map { if (it.id == memberId) it.copy(phoneNumber = phoneNumber) else it }
+        }
+    }
+
+    override suspend fun addReminder(reminder: FamilyReminder) {
+        val row = reminder.toRow().copy(familyGroupId = currentGroupId())
+        client.postgrest["family_reminders"].insert(row)
+        _reminders.update { it + reminder.copy(familyGroupId = currentGroupId()) }
+    }
+
+    override suspend fun updateReminder(reminder: FamilyReminder) {
+        val row = reminder.toRow()
+        client.postgrest["family_reminders"].update(row) { filter { eq("id", row.id) } }
+        _reminders.update { list -> list.map { if (it.id == reminder.id) reminder else it } }
+    }
+
+    override suspend fun deleteReminder(reminderId: String) {
+        client.postgrest["family_reminders"].delete { filter { eq("id", reminderId) } }
+        _reminders.update { it.filterNot { r -> r.id == reminderId } }
+    }
+
     // -------------------------------------------------------------------------
     // Auth — GoTrue
     // -------------------------------------------------------------------------
@@ -164,6 +199,7 @@ class SupabaseFamilyRepository : FamilyRepository {
             runCatching { refreshComplaints() }
             runCatching { refreshFeedback() }
             runCatching { refreshFamilyGroup() }
+            runCatching { refreshReminders() }
             member
         }.recoverCatching { e ->
             throw mapAuthError(e, fallback = "Login failed. Check your email and password.")
@@ -282,6 +318,10 @@ class SupabaseFamilyRepository : FamilyRepository {
         _group.value = fetchFamilyGroup()
     }
 
+    private suspend fun refreshReminders() {
+        _reminders.value = fetchReminders()
+    }
+
     private suspend fun fetchTasks(): List<Task> {
         val groupId = currentGroupIdOrNull() ?: return emptyList()
         return client.postgrest["tasks"]
@@ -326,6 +366,14 @@ class SupabaseFamilyRepository : FamilyRepository {
             .select { filter { eq("id", groupId) } }
             .decodeSingleOrNull<FamilyGroupRow>()
             ?.toDomain()
+    }
+
+    private suspend fun fetchReminders(): List<FamilyReminder> {
+        val groupId = currentGroupIdOrNull() ?: return emptyList()
+        return client.postgrest["family_reminders"]
+            .select { filter { eq("family_group_id", groupId) } }
+            .decodeList<FamilyReminderRow>()
+            .map { it.toDomain() }
     }
 
     private suspend fun fetchCurrentMemberOrThrow(): FamilyMember {

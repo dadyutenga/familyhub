@@ -6,6 +6,8 @@ enum class TaskStatus { PENDING, DONE, OVERDUE }
 
 enum class FamilyGroupOption { CREATE, JOIN }
 
+enum class RepeatType { DAILY, WEEKLY, SPECIFIC_DAYS }
+
 data class User(
     val id: String,
     val name: String,
@@ -60,4 +62,16 @@ data class Complaint(
     val description: String,
     val createdAt: Long,
     val resolved: Boolean = false
+)
+
+data class FamilyReminder(
+    val id: String,
+    val familyGroupId: String = "",
+    val title: String,
+    val reminderTime: String,       // "HH:mm" format
+    val repeatType: RepeatType = RepeatType.DAILY,
+    val daysOfWeek: String? = null, // comma-separated "MON,WED,FRI"
+    val isActive: Boolean = true,
+    val createdBy: String = "",
+    val createdAt: Long = System.currentTimeMillis()
 )

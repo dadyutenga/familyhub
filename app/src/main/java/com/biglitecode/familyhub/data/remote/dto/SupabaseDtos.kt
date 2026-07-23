@@ -3,8 +3,10 @@ package com.biglitecode.familyhub.data.remote.dto
 import com.biglitecode.familyhub.data.model.Complaint
 import com.biglitecode.familyhub.data.model.FamilyGroup
 import com.biglitecode.familyhub.data.model.FamilyMember
+import com.biglitecode.familyhub.data.model.FamilyReminder
 import com.biglitecode.familyhub.data.model.FamilyRole
 import com.biglitecode.familyhub.data.model.Feedback
+import com.biglitecode.familyhub.data.model.RepeatType
 import com.biglitecode.familyhub.data.model.Task
 import com.biglitecode.familyhub.data.model.TaskStatus
 import kotlinx.serialization.SerialName
@@ -72,6 +74,19 @@ data class ComplaintRow(
     @SerialName("family_group_id") val familyGroupId: String? = null
 )
 
+@Serializable
+data class FamilyReminderRow(
+    val id: String,
+    @SerialName("family_group_id") val familyGroupId: String,
+    val title: String,
+    @SerialName("reminder_time") val reminderTime: String,
+    @SerialName("repeat_type") val repeatType: String = "DAILY",
+    @SerialName("days_of_week") val daysOfWeek: String? = null,
+    @SerialName("is_active") val isActive: Boolean = true,
+    @SerialName("created_by") val createdBy: String,
+    @SerialName("created_at") val createdAt: Long? = null
+)
+
 // =============================================================================
 // DTO → Domain mappers
 // =============================================================================
@@ -129,6 +144,19 @@ fun ComplaintRow.toDomain(): Complaint = Complaint(
     resolved = resolved
 )
 
+fun FamilyReminderRow.toDomain(): FamilyReminder = FamilyReminder(
+    id = id,
+    familyGroupId = familyGroupId,
+    title = title,
+    reminderTime = reminderTime,
+    repeatType = runCatching { RepeatType.valueOf(repeatType.trim().uppercase()) }
+        .getOrElse { RepeatType.DAILY },
+    daysOfWeek = daysOfWeek,
+    isActive = isActive,
+    createdBy = createdBy,
+    createdAt = createdAt ?: System.currentTimeMillis()
+)
+
 // =============================================================================
 // Domain → DTO mappers (for inserts/updates)
 // =============================================================================
@@ -162,4 +190,16 @@ fun Complaint.toRow(): ComplaintRow = ComplaintRow(
     description = description,
     createdAt = createdAt,
     resolved = resolved
+)
+
+fun FamilyReminder.toRow(): FamilyReminderRow = FamilyReminderRow(
+    id = id,
+    familyGroupId = familyGroupId,
+    title = title,
+    reminderTime = reminderTime,
+    repeatType = repeatType.name,
+    daysOfWeek = daysOfWeek,
+    isActive = isActive,
+    createdBy = createdBy,
+    createdAt = createdAt
 )

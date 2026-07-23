@@ -148,6 +148,15 @@ class TasksViewModel(
         }
     }
 
+    fun updatePhoneNumber(phoneNumber: String) {
+        val user = currentUser.value ?: return
+        viewModelScope.launch {
+            repository.updatePhoneNumber(user.id, phoneNumber)
+            // Update session so UI reflects the change immediately
+            SessionManager.setUser(user.copy(phoneNumber = phoneNumber))
+        }
+    }
+
     class Factory(
         private val repository: FamilyRepository,
         private val taskRepository: TaskRepository

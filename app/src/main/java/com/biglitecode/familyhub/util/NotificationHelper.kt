@@ -10,7 +10,9 @@ import com.biglitecode.familyhub.R
 
 object NotificationHelper {
     const val CHANNEL_ID = "familyhub_tasks"
+    const val REMINDER_CHANNEL_ID = "familyhub_reminders"
     private const val CHANNEL_NAME = "Task Updates"
+    private const val REMINDER_CHANNEL_NAME = "Family Reminders"
     private var notificationId = 1000
 
     fun createChannel(context: Context) {
@@ -21,6 +23,20 @@ object NotificationHelper {
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 description = "Notifications when tasks are assigned or updated"
+            }
+            val manager = context.getSystemService(NotificationManager::class.java)
+            manager?.createNotificationChannel(channel)
+        }
+    }
+
+    fun createReminderChannel(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                REMINDER_CHANNEL_ID,
+                REMINDER_CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Recurring family reminders"
             }
             val manager = context.getSystemService(NotificationManager::class.java)
             manager?.createNotificationChannel(channel)
@@ -44,6 +60,25 @@ object NotificationHelper {
             NotificationManagerCompat.from(context).notify(notificationId++, notification)
         } catch (_: SecurityException) {
             // POST_NOTIFICATIONS denied — fail silently; caller may show Toast
+        }
+    }
+
+    fun showReminderNotification(
+        context: Context,
+        title: String
+    ) {
+        val notification = NotificationCompat.Builder(context, REMINDER_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_familyhub_notification)
+            .setContentTitle("Family Reminder")
+            .setContentText(title)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .build()
+
+        try {
+            NotificationManagerCompat.from(context).notify(notificationId++, notification)
+        } catch (_: SecurityException) {
+            // POST_NOTIFICATIONS denied
         }
     }
 }
