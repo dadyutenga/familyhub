@@ -1,6 +1,7 @@
 package com.biglitecode.familyhub.data.repository
 
 import com.biglitecode.familyhub.core.SupabaseClientProvider
+import com.biglitecode.familyhub.data.model.AppUsageEntry
 import com.biglitecode.familyhub.data.model.Complaint
 import com.biglitecode.familyhub.data.model.FamilyGroup
 import com.biglitecode.familyhub.data.model.FamilyMember
@@ -8,6 +9,7 @@ import com.biglitecode.familyhub.data.model.FamilyReminder
 import com.biglitecode.familyhub.data.model.FamilyRole
 import com.biglitecode.familyhub.data.model.Feedback
 import com.biglitecode.familyhub.data.model.Task
+import com.biglitecode.familyhub.data.remote.dto.AppUsageRow
 import com.biglitecode.familyhub.data.remote.dto.ComplaintRow
 import com.biglitecode.familyhub.data.remote.dto.FamilyGroupRow
 import com.biglitecode.familyhub.data.remote.dto.FamilyMemberRow
@@ -27,6 +29,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import java.util.UUID
 
 /**
@@ -54,6 +58,7 @@ class SupabaseFamilyRepository : FamilyRepository {
     private val _feedback = MutableStateFlow<List<Feedback>>(emptyList())
     private val _group = MutableStateFlow<FamilyGroup?>(null)
     private val _reminders = MutableStateFlow<List<FamilyReminder>>(emptyList())
+    private val _appUsage = MutableStateFlow<List<AppUsageEntry>>(emptyList())
 
     // -------------------------------------------------------------------------
     // Observe — one fresh fetch per collector, then tail the local cache.
@@ -89,6 +94,11 @@ class SupabaseFamilyRepository : FamilyRepository {
         emitAll(_reminders.asStateFlow())
     }
 
+    override fun observeAppUsage(): Flow<List<AppUsageEntry>> = flow {
+        runCatching { refreshAppUsage() }
+        emitAll(_appUsage.asStateFlow())
+    }
+
     // -------------------------------------------------------------------------
     // Reads — always hit Supabase so callers get fresh data.
     // -------------------------------------------------------------------------
@@ -96,6 +106,7 @@ class SupabaseFamilyRepository : FamilyRepository {
     override suspend fun getTasks(): List<Task> = fetchTasks()
     override suspend fun getMembers(): List<FamilyMember> = fetchMembers()
     override suspend fun getReminders(): List<FamilyReminder> = fetchReminders()
+    override suspend fun getAppUsage(): List<AppUsageEntry> = fetchAppUsage()
 
     override suspend fun getTaskById(id: String): Task? {
         return client.postgrest["tasks"]
@@ -181,6 +192,18 @@ class SupabaseFamilyRepository : FamilyRepository {
         _reminders.update { it.filterNot { r -> r.id == reminderId } }
     }
 
+    override suspend fun addAppUsageLogs(entries: List<AppUsageEntry>) {
+        if (entries.isEmpty()) return
+        val rows = entries.map { it.toRow().copy(familyGroupId = currentGroupId()) }
+        client.postgrest["app_usage_logs"].insert(rows)
+        _appUsage.update { it + entries }
+    }
+
+    override suspend fun deleteOldAppUsageLogs(beforeDate: String) {
+        client.postgrest["app_usage_logs"].delete { filter { lt("date", beforeDate) } }
+        _appUsage.update { it.filterNot { entry -> entry.date < beforeDate } }
+    }
+
     // -------------------------------------------------------------------------
     // Auth — GoTrue
     // -------------------------------------------------------------------------
@@ -200,6 +223,7 @@ class SupabaseFamilyRepository : FamilyRepository {
             runCatching { refreshFeedback() }
             runCatching { refreshFamilyGroup() }
             runCatching { refreshReminders() }
+            runCatching { refreshAppUsage() }
             member
         }.recoverCatching { e ->
             throw mapAuthError(e, fallback = "Login failed. Check your email and password.")
@@ -214,23 +238,53 @@ class SupabaseFamilyRepository : FamilyRepository {
         groupNameOrCode: String
     ): Result<FamilyMember> = runCatching {
         android.util.Log.d("SupabaseRepo", "Starting sign-up: name=$name, email=$email, role=$role, createGroup=$createGroup")
-        
-        client.auth.signUpWith(Email) {
-            this.email = email
-            this.password = password
+
+        // ── Step 1: Create auth session ──────────────────────────────────
+        // If the user already exists (from a previous failed attempt), fall
+        // through to sign-in so the flow can resume instead of hard-failing.
+        val authUserId: String = try {
+            client.auth.signUpWith(Email) {
+                this.email = email
+                this.password = password
+            }
+            resolveSessionOrSignIn(email, password)
+        } catch (e: Exception) {
+            val msg = e.message.orEmpty()
+            val alreadyExists = msg.contains("already", ignoreCase = true) ||
+                msg.contains("registered", ignoreCase = true) ||
+                msg.contains("exists", ignoreCase = true)
+            if (alreadyExists) {
+                android.util.Log.w("SupabaseRepo", "Auth user already exists — resuming via sign-in", e)
+                client.auth.signInWith(Email) {
+                    this.email = email
+                    this.password = password
+                }
+                resolveSessionOrSignIn(email, password)
+            } else {
+                throw e
+            }
         }
-        android.util.Log.d("SupabaseRepo", "Auth user created successfully")
-        
-        val authUserId = client.auth.currentUserOrNull()?.id?.toString()
-            ?: error("Sign-up succeeded but no session was returned. " +
-                "If email confirmation is enabled, disable it in Supabase Auth settings.")
         android.util.Log.d("SupabaseRepo", "Auth user ID: $authUserId")
 
+        // ── Step 2: Check for leftover family_member (previous partial attempt) ──
+        val existingRow = try {
+            client.postgrest["family_members"]
+                .select { filter { eq("user_id", authUserId) } }
+                .decodeSingleOrNull<FamilyMemberRow>()
+        } catch (e: Exception) {
+            android.util.Log.w("SupabaseRepo", "Could not check for existing member row", e)
+            null
+        }
+        if (existingRow != null) {
+            android.util.Log.d("SupabaseRepo", "Found existing family_member from previous attempt: ${existingRow.id}")
+            val member = existingRow.toDomain()
+            SessionManager.setUser(member)
+            warmCaches()
+            return@runCatching member
+        }
+
+        // ── Step 3: Resolve or create the family group ───────────────────
         val memberId = "m_${UUID.randomUUID().toString().take(8)}"
-        android.util.Log.d("SupabaseRepo", "Generated member ID: $memberId")
-        
-        // Step 1: Resolve or create the family group.
-        // When creating a new group, use a placeholder created_by (updated after member insert).
         val groupId = if (createGroup) {
             val newGroupId = "g_${UUID.randomUUID().toString().take(8)}"
             val inviteCode = generateInviteCode()
@@ -240,7 +294,7 @@ class SupabaseFamilyRepository : FamilyRepository {
                     FamilyGroupRow(
                         id = newGroupId,
                         name = groupNameOrCode.ifBlank { "$name's Family" },
-                        createdBy = memberId,  // will be valid once member is inserted
+                        createdBy = memberId,
                         inviteCode = inviteCode
                     )
                 )
@@ -252,15 +306,17 @@ class SupabaseFamilyRepository : FamilyRepository {
             newGroupId
         } else {
             android.util.Log.d("SupabaseRepo", "Joining existing group with code: $groupNameOrCode")
-            val group = client.postgrest["family_groups"]
-                .select { filter { eq("invite_code", groupNameOrCode.trim()) } }
-                .decodeSingleOrNull<FamilyGroupRow>()
-                ?: error("No family found with that invite code.")
+            val groups = client.postgrest.rpc(
+                "lookup_family_by_invite_code",
+                buildJsonObject { put("code", groupNameOrCode.trim()) }
+            ).decodeList<FamilyGroupRow>()
+            val group = groups.firstOrNull()
+                ?: error("No family found with that invite code. Check the code and try again.")
             android.util.Log.d("SupabaseRepo", "Found group: ${group.id}")
             group.id
         }
 
-        // Step 2: Insert the family member (must happen after group exists for FK).
+        // ── Step 4: Insert the family member ─────────────────────────────
         val memberRow = FamilyMemberRow(
             id = memberId,
             userId = authUserId,
@@ -275,16 +331,66 @@ class SupabaseFamilyRepository : FamilyRepository {
             android.util.Log.d("SupabaseRepo", "Family member inserted successfully")
         } catch (e: Exception) {
             android.util.Log.e("SupabaseRepo", "Failed to insert family member: ${e.message}", e)
-            throw Exception("Failed to create family member: ${e.message}")
+            // Sign out so user can retry cleanly with the same email
+            runCatching { client.auth.signOut() }
+            throw Exception(
+                "Could not link your account to the family. This may be a temporary server issue — " +
+                    "please try again. (${e.message})"
+            )
         }
 
         val member = memberRow.toDomain()
         android.util.Log.d("SupabaseRepo", "Sign-up complete. Member: id=${member.id}, name=${member.name}, role=${member.role}")
         SessionManager.setUser(member)
+        warmCaches()
         member
     }.recoverCatching { e ->
         android.util.Log.e("SupabaseRepo", "Sign-up failed: ${e.message}", e)
         throw mapAuthError(e, fallback = "Sign up failed. ${e.message.orEmpty()}")
+    }
+
+    /**
+     * Restore session from Supabase Auth on cold start.
+     *
+     * - If a valid Auth session exists AND the user has a family_member row → restore.
+     * - If Auth session exists but no family_member row → orphaned account, sign out.
+     * - If no Auth session → nothing to restore.
+     */
+    override suspend fun restoreSessionIfPossible(): FamilyMember? {
+        val userId = try {
+            client.auth.currentUserOrNull()?.id?.toString()
+        } catch (e: Exception) {
+            android.util.Log.w("SupabaseRepo", "restoreSession: error checking auth state", e)
+            null
+        }
+        if (userId == null) {
+            android.util.Log.d("SupabaseRepo", "restoreSession: no auth session found")
+            return null
+        }
+
+        // Auth session exists — try to fetch the family_member row
+        return try {
+            val row = client.postgrest["family_members"]
+                .select { filter { eq("user_id", userId) } }
+                .decodeSingleOrNull<FamilyMemberRow>()
+
+            if (row != null) {
+                val member = row.toDomain()
+                SessionManager.setUser(member)
+                android.util.Log.d("SupabaseRepo", "restoreSession: restored member ${member.id} (${member.name})")
+                member
+            } else {
+                // Authenticated but no family_member row — orphaned account from a
+                // previous partial sign-up. Sign out so the user can re-sign-up cleanly.
+                android.util.Log.w("SupabaseRepo", "restoreSession: auth user $userId has no family_member row — orphaned")
+                runCatching { client.auth.signOut() }
+                null
+            }
+        } catch (e: Exception) {
+            // Network error or other issue — can't restore right now
+            android.util.Log.e("SupabaseRepo", "restoreSession: failed to fetch member", e)
+            null
+        }
     }
 
     override suspend fun sendPasswordReset(email: String): Result<Unit> =
@@ -293,6 +399,42 @@ class SupabaseFamilyRepository : FamilyRepository {
         }.recoverCatching { e ->
             throw mapAuthError(e, fallback = "Could not send reset email. ${e.message.orEmpty()}")
         }
+
+    // -------------------------------------------------------------------------
+    // Internal helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * After `signUpWith`, verify we actually have a session. If email confirmation
+     * is enabled (or the client didn't auto-sign-in), fall back to explicit sign-in.
+     */
+    private suspend fun resolveSessionOrSignIn(email: String, password: String): String {
+        val id = client.auth.currentUserOrNull()?.id?.toString()
+        if (id != null) return id
+
+        // No session after sign-up — try explicit sign-in
+        android.util.Log.w("SupabaseRepo", "No session after signUpWith — attempting explicit signIn")
+        client.auth.signInWith(Email) {
+            this.email = email
+            this.password = password
+        }
+        return client.auth.currentUserOrNull()?.id?.toString()
+            ?: error(
+                "Sign-up succeeded but no session could be established. " +
+                    "If email confirmation is enabled in Supabase, disable it in " +
+                    "Auth → Providers → Email settings, then try again."
+            )
+    }
+
+    private suspend fun warmCaches() {
+        runCatching { refreshTasks() }
+        runCatching { refreshMembers() }
+        runCatching { refreshComplaints() }
+        runCatching { refreshFeedback() }
+        runCatching { refreshFamilyGroup() }
+        runCatching { refreshReminders() }
+        runCatching { refreshAppUsage() }
+    }
 
     // -------------------------------------------------------------------------
     // Internal refresh helpers
@@ -320,6 +462,10 @@ class SupabaseFamilyRepository : FamilyRepository {
 
     private suspend fun refreshReminders() {
         _reminders.value = fetchReminders()
+    }
+
+    private suspend fun refreshAppUsage() {
+        _appUsage.value = fetchAppUsage()
     }
 
     private suspend fun fetchTasks(): List<Task> {
@@ -376,16 +522,28 @@ class SupabaseFamilyRepository : FamilyRepository {
             .map { it.toDomain() }
     }
 
+    private suspend fun fetchAppUsage(): List<AppUsageEntry> {
+        val groupId = currentGroupIdOrNull() ?: return emptyList()
+        return client.postgrest["app_usage_logs"]
+            .select { filter { eq("family_group_id", groupId) } }
+            .decodeList<AppUsageRow>()
+            .map { it.toDomain() }
+    }
+
     private suspend fun fetchCurrentMemberOrThrow(): FamilyMember {
         val authUserId = client.auth.currentUserOrNull()?.id?.toString()
-            ?: error("Not authenticated.")
+            ?: error("Not authenticated. Please log in.")
         android.util.Log.d("SupabaseRepo", "Fetching family_member for auth user: $authUserId")
         val row = client.postgrest["family_members"]
             .select { filter { eq("user_id", authUserId) } }
             .decodeSingleOrNull<FamilyMemberRow>()
         if (row == null) {
             android.util.Log.e("SupabaseRepo", "No family_member row found for user_id: $authUserId")
-            error("No family member record for this account. Ask a parent to add you.")
+            error(
+                "Your account exists but is not linked to any family. " +
+                    "This can happen if sign-up was interrupted. " +
+                    "Please sign up again — your existing credentials will be reused."
+            )
         }
         android.util.Log.d("SupabaseRepo", "Found family_member: id=${row.id}, name=${row.name}, role=${row.role}, familyGroupId=${row.familyGroupId}")
         return row.toDomain()

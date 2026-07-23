@@ -29,6 +29,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.biglitecode.familyhub.ui.account.AccountScreen
+import com.biglitecode.familyhub.ui.appusage.AppUsageScreen
+import com.biglitecode.familyhub.ui.appusage.AppUsageViewModel
 import com.biglitecode.familyhub.ui.complains.ComplainsScreen
 import com.biglitecode.familyhub.ui.contact.ContactScreen
 import com.biglitecode.familyhub.ui.dashboard.DashboardScreen
@@ -53,6 +55,7 @@ import kotlinx.coroutines.launch
 fun FamilyHubNavGraph(
     viewModel: TasksViewModel,
     remindersViewModel: RemindersViewModel,
+    appUsageViewModel: AppUsageViewModel,
     onLogout: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -77,6 +80,7 @@ fun FamilyHubNavGraph(
         Routes.CONTACT -> "Contact"
         Routes.PRIVACY -> "Privacy Policy"
         Routes.REMINDERS -> "Reminders"
+        Routes.APP_USAGE -> "App Usage"
         else -> if (currentDestination?.route?.startsWith("task_detail") == true) "Task Detail" else "FamilyHub"
     }
 
@@ -207,6 +211,9 @@ fun FamilyHubNavGraph(
                 }
                 composable(Routes.REMINDERS) {
                     RemindersScreen(viewModel = remindersViewModel)
+                }
+                composable(Routes.APP_USAGE) {
+                    AppUsageScreen(viewModel = appUsageViewModel)
                 }
             }
         }

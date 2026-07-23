@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.ContactPhone
 import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material.icons.filled.Notifications
@@ -118,6 +119,16 @@ fun FamilyHubDrawerContent(
                 isActive = currentRoute == Routes.REMINDERS,
                 onClick = { onItemClick(Routes.REMINDERS) }
             )
+            // App Usage — parent only
+            if (user?.role == FamilyRole.PARENT) {
+                Spacer(Modifier.height(4.dp))
+                DrawerMenuItem(
+                    icon = Icons.Filled.BarChart,
+                    label = "App Usage",
+                    isActive = currentRoute == Routes.APP_USAGE,
+                    onClick = { onItemClick(Routes.APP_USAGE) }
+                )
+            }
             Spacer(Modifier.height(4.dp))
             DrawerMenuItem(
                 icon = Icons.AutoMirrored.Filled.Help,

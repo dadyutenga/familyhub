@@ -1,5 +1,6 @@
 package com.biglitecode.familyhub.data.remote.dto
 
+import com.biglitecode.familyhub.data.model.AppUsageEntry
 import com.biglitecode.familyhub.data.model.Complaint
 import com.biglitecode.familyhub.data.model.FamilyGroup
 import com.biglitecode.familyhub.data.model.FamilyMember
@@ -87,6 +88,19 @@ data class FamilyReminderRow(
     @SerialName("created_at") val createdAt: Long? = null
 )
 
+@Serializable
+data class AppUsageRow(
+    val id: String,
+    @SerialName("child_id") val childId: String,
+    @SerialName("child_name") val childName: String = "",
+    @SerialName("app_package") val appPackage: String,
+    @SerialName("app_name") val appName: String,
+    @SerialName("usage_minutes") val usageMinutes: Int,
+    val date: String,
+    @SerialName("created_at") val createdAt: Long? = null,
+    @SerialName("family_group_id") val familyGroupId: String? = null
+)
+
 // =============================================================================
 // DTO → Domain mappers
 // =============================================================================
@@ -157,6 +171,17 @@ fun FamilyReminderRow.toDomain(): FamilyReminder = FamilyReminder(
     createdAt = createdAt ?: System.currentTimeMillis()
 )
 
+fun AppUsageRow.toDomain(): AppUsageEntry = AppUsageEntry(
+    id = id,
+    childId = childId,
+    childName = childName,
+    appPackage = appPackage,
+    appName = appName,
+    usageMinutes = usageMinutes,
+    date = date,
+    createdAt = createdAt ?: System.currentTimeMillis()
+)
+
 // =============================================================================
 // Domain → DTO mappers (for inserts/updates)
 // =============================================================================
@@ -201,5 +226,16 @@ fun FamilyReminder.toRow(): FamilyReminderRow = FamilyReminderRow(
     daysOfWeek = daysOfWeek,
     isActive = isActive,
     createdBy = createdBy,
+    createdAt = createdAt
+)
+
+fun AppUsageEntry.toRow(): AppUsageRow = AppUsageRow(
+    id = id,
+    childId = childId,
+    childName = childName,
+    appPackage = appPackage,
+    appName = appName,
+    usageMinutes = usageMinutes,
+    date = date,
     createdAt = createdAt
 )

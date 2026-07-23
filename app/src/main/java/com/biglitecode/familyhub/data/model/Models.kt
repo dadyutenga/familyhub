@@ -75,3 +75,14 @@ data class FamilyReminder(
     val createdBy: String = "",
     val createdAt: Long = System.currentTimeMillis()
 )
+
+data class AppUsageEntry(
+    val id: String,
+    val childId: String,
+    val childName: String = "",
+    val appPackage: String,
+    val appName: String,
+    val usageMinutes: Int,
+    val date: String,               // "YYYY-MM-DD"
+    val createdAt: Long = System.currentTimeMillis()
+)

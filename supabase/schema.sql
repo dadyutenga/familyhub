@@ -87,6 +87,19 @@ CREATE TABLE IF NOT EXISTS family_reminders (
     created_at      BIGINT NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT
 );
 
+-- App usage logs (child device usage data, uploaded periodically)
+CREATE TABLE IF NOT EXISTS app_usage_logs (
+    id              TEXT PRIMARY KEY,
+    child_id        TEXT NOT NULL REFERENCES family_members(id) ON DELETE CASCADE,
+    child_name      TEXT NOT NULL DEFAULT '',
+    app_package     TEXT NOT NULL,
+    app_name        TEXT NOT NULL,
+    usage_minutes   INTEGER NOT NULL DEFAULT 0,
+    date            TEXT NOT NULL,              -- "YYYY-MM-DD" format
+    created_at      BIGINT NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT,
+    family_group_id TEXT NOT NULL REFERENCES family_groups(id) ON DELETE CASCADE
+);
+
 -- Demo table for the MainActivity TodoList example
 CREATE TABLE IF NOT EXISTS todos (
     id              INTEGER PRIMARY KEY,
@@ -103,6 +116,7 @@ ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE feedback ENABLE ROW LEVEL SECURITY;
 ALTER TABLE complaints ENABLE ROW LEVEL SECURITY;
 ALTER TABLE family_reminders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE app_usage_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE todos ENABLE ROW LEVEL SECURITY;
 
 -- Helper function: get current user's family_group_id
@@ -130,6 +144,34 @@ BEGIN
         WHERE user_id = auth.uid() AND role = 'PARENT'
     ) INTO is_parent;
     RETURN is_parent;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Helper function: look up a family group by invite code.
+-- SECURITY DEFINER so it bypasses RLS — needed during sign-up when the user
+-- has an auth session but no family_members row yet, so the normal
+-- family_groups_select_members policy would block the SELECT.
+CREATE OR REPLACE FUNCTION public.lookup_family_by_invite_code(code TEXT)
+RETURNS TABLE(id TEXT, name TEXT, created_by TEXT, invite_code TEXT) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT fg.id, fg.name, fg.created_by, fg.invite_code
+    FROM family_groups fg
+    WHERE fg.invite_code = code;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Helper function: check whether the current auth user has a family_members row.
+-- SECURITY DEFINER so it bypasses the normal SELECT policy (which would return
+-- nothing for an orphaned user who has no family_members row yet).
+-- Used by the app during session restore and sign-up resume.
+CREATE OR REPLACE FUNCTION public.check_my_member_record()
+RETURNS TABLE(id TEXT, name TEXT, role TEXT, family_group_id TEXT) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT fm.id, fm.name, fm.role, fm.family_group_id
+    FROM family_members fm
+    WHERE fm.user_id = auth.uid();
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -263,6 +305,40 @@ CREATE POLICY "family_reminders_delete_parents"
     ON family_reminders FOR DELETE
     USING (public.current_user_is_parent());
 
+-- app_usage_logs policies
+-- Parents can read usage data for children in their family
+CREATE POLICY "app_usage_select_parents"
+    ON app_usage_logs FOR SELECT
+    USING (
+        public.current_user_is_parent()
+        AND family_group_id = public.current_user_family_group_id()
+    );
+
+-- Children can also see their own usage data
+CREATE POLICY "app_usage_select_own"
+    ON app_usage_logs FOR SELECT
+    USING (
+        child_id IN (
+            SELECT id FROM family_members WHERE user_id = auth.uid()
+        )
+    );
+
+-- Children can insert their own usage data
+CREATE POLICY "app_usage_insert_children"
+    ON app_usage_logs FOR INSERT
+    WITH CHECK (
+        child_id IN (
+            SELECT id FROM family_members WHERE user_id = auth.uid()
+        )
+        AND family_group_id = public.current_user_family_group_id()
+    );
+
+-- No one can update usage logs (append-only)
+-- Parents can delete old usage data
+CREATE POLICY "app_usage_delete_parents"
+    ON app_usage_logs FOR DELETE
+    USING (public.current_user_is_parent());
+
 -- todos policy: allow all authenticated users to read demo todos
 CREATE POLICY "todos_select_all"
     ON todos FOR SELECT
@@ -298,6 +374,10 @@ CREATE INDEX IF NOT EXISTS idx_family_groups_invite    ON family_groups(invite_c
 
 CREATE INDEX IF NOT EXISTS idx_family_reminders_group ON family_reminders(family_group_id);
 
+CREATE INDEX IF NOT EXISTS idx_app_usage_child        ON app_usage_logs(child_id);
+CREATE INDEX IF NOT EXISTS idx_app_usage_group         ON app_usage_logs(family_group_id);
+CREATE INDEX IF NOT EXISTS idx_app_usage_date          ON app_usage_logs(date);
+
 -- ============================================================================
 -- 5. SAMPLE / DEMO DATA (REMOVED)
 -- ============================================================================
@@ -314,7 +394,7 @@ CREATE INDEX IF NOT EXISTS idx_family_reminders_group ON family_reminders(family
 --
 -- BEGIN;
 --   DROP PUBLICATION IF EXISTS supabase_realtime;
---   CREATE PUBLICATION supabase_realtime FOR TABLE family_groups, family_members, tasks, feedback, complaints, family_reminders, todos;
+--   CREATE PUBLICATION supabase_realtime FOR TABLE family_groups, family_members, tasks, feedback, complaints, family_reminders, app_usage_logs, todos;
 -- COMMIT;
 -- ============================================================================
 
