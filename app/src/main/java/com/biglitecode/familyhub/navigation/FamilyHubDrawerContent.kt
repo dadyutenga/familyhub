@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.ContactPhone
 import androidx.compose.material.icons.filled.Feedback
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.ReportProblem
@@ -75,8 +76,15 @@ fun FamilyHubDrawerContent(
 
         Spacer(Modifier.height(16.dp))
 
-        // ── Section 1: Account & Settings ─────────────────────────────
+        // ── Section 1: Home, Account & Settings ──────────────────────
         DrawerSection {
+            DrawerMenuItem(
+                icon = Icons.Filled.Home,
+                label = "Home",
+                isActive = currentRoute == Routes.HOME,
+                onClick = { onItemClick(Routes.HOME) }
+            )
+            Spacer(Modifier.height(4.dp))
             DrawerMenuItem(
                 icon = Icons.Filled.AccountCircle,
                 label = "Account",
