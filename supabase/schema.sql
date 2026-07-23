@@ -147,17 +147,19 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Helper function: look up a family group by invite code.
+-- Helper function: look up a family group by its name.
 -- SECURITY DEFINER so it bypasses RLS — needed during sign-up when the user
 -- has an auth session but no family_members row yet, so the normal
 -- family_groups_select_members policy would block the SELECT.
-CREATE OR REPLACE FUNCTION public.lookup_family_by_invite_code(code TEXT)
+-- Uses case-insensitive matching so "Smith Family" and "smith family" both work.
+CREATE OR REPLACE FUNCTION public.lookup_family_by_name(family_name TEXT)
 RETURNS TABLE(id TEXT, name TEXT, created_by TEXT, invite_code TEXT) AS $$
 BEGIN
     RETURN QUERY
     SELECT fg.id, fg.name, fg.created_by, fg.invite_code
     FROM family_groups fg
-    WHERE fg.invite_code = code;
+    WHERE LOWER(fg.name) = LOWER(family_name)
+    LIMIT 1;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

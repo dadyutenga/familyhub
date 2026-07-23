@@ -48,7 +48,7 @@ private data class Faq(val question: String, val answer: String)
 private val faqs = listOf(
     Faq(
         "How do I add family members?",
-        "Parents can share the family invite code from the Account screen. New members enter that code during Sign Up."
+        "Parents can share the family name from the Account screen. New members enter that family name during Sign Up to join."
     ),
     Faq(
         "How do I assign tasks?",

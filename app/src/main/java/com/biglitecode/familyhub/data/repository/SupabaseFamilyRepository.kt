@@ -310,14 +310,14 @@ class SupabaseFamilyRepository : FamilyRepository {
             }
             newGroupId
         } else {
-            android.util.Log.d("SupabaseRepo", "Joining existing group with code: $groupNameOrCode")
+            android.util.Log.d("SupabaseRepo", "Joining existing group by name: $groupNameOrCode")
             val groups = client.postgrest.rpc(
-                "lookup_family_by_invite_code",
-                buildJsonObject { put("code", groupNameOrCode.trim()) }
+                "lookup_family_by_name",
+                buildJsonObject { put("family_name", groupNameOrCode.trim()) }
             ).decodeList<FamilyGroupRow>()
             val group = groups.firstOrNull()
-                ?: error("No family found with that invite code. Check the code and try again.")
-            android.util.Log.d("SupabaseRepo", "Found group: ${group.id}")
+                ?: error("No family found with the name \"$groupNameOrCode\". Check the name and try again.")
+            android.util.Log.d("SupabaseRepo", "Found group: ${group.id} (${group.name})")
             group.id
         }
 
