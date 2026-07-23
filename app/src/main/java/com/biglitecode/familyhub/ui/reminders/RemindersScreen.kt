@@ -62,6 +62,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.biglitecode.familyhub.data.model.FamilyReminder
 import com.biglitecode.familyhub.data.model.FamilyRole
 import com.biglitecode.familyhub.data.model.RepeatType
+import com.biglitecode.familyhub.ui.components.ErrorBanner
 import com.biglitecode.familyhub.ui.components.PrimaryButton
 import com.biglitecode.familyhub.ui.preview.FamilyHubPreview
 import com.biglitecode.familyhub.ui.preview.PreviewDevices
@@ -87,11 +88,22 @@ private val DAY_LABELS = mapOf(
 fun RemindersScreen(viewModel: RemindersViewModel) {
     val user by viewModel.currentUser.collectAsStateWithLifecycle()
     val reminders by viewModel.reminders.collectAsStateWithLifecycle()
+    val errorMessage by viewModel.error.collectAsStateWithLifecycle()
     val isParent = user?.role == FamilyRole.PARENT
 
     var showAddSheet by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
+        // Error banner
+        errorMessage?.let { msg ->
+            ErrorBanner(
+                message = msg,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(16.dp)
+            )
+        }
+
         if (reminders.isEmpty()) {
             // Empty state
             Column(

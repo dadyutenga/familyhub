@@ -176,9 +176,14 @@ class SupabaseFamilyRepository : FamilyRepository {
     }
 
     override suspend fun addReminder(reminder: FamilyReminder) {
-        val row = reminder.toRow().copy(familyGroupId = currentGroupId())
+        val groupId = currentGroupIdOrNull()
+            ?: error("Cannot create reminder: no family linked to this account. Please sign up again.")
+        if (groupId.isBlank()) {
+            error("Cannot create reminder: family group ID is missing. Please sign up again.")
+        }
+        val row = reminder.toRow().copy(familyGroupId = groupId)
         client.postgrest["family_reminders"].insert(row)
-        _reminders.update { it + reminder.copy(familyGroupId = currentGroupId()) }
+        _reminders.update { it + reminder.copy(familyGroupId = groupId) }
     }
 
     override suspend fun updateReminder(reminder: FamilyReminder) {

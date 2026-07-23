@@ -290,19 +290,23 @@ CREATE POLICY "complaints_delete_parents"
 -- family_reminders policies
 CREATE POLICY "family_reminders_select_group"
     ON family_reminders FOR SELECT
+    TO authenticated
     USING (family_group_id = public.current_user_family_group_id());
 
 CREATE POLICY "family_reminders_insert_parents"
     ON family_reminders FOR INSERT
+    TO authenticated
     WITH CHECK (public.current_user_is_parent() AND family_group_id = public.current_user_family_group_id());
 
 CREATE POLICY "family_reminders_update_parents"
     ON family_reminders FOR UPDATE
+    TO authenticated
     USING (public.current_user_is_parent())
     WITH CHECK (family_group_id = public.current_user_family_group_id());
 
 CREATE POLICY "family_reminders_delete_parents"
     ON family_reminders FOR DELETE
+    TO authenticated
     USING (public.current_user_is_parent());
 
 -- app_usage_logs policies
